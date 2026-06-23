@@ -1,0 +1,223 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #f5f7fb;
+}
+
+body {
+  margin: 0;
+}
+
+.page-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.04em;
+}
+
+.page-subtitle {
+  color: #64748b;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.soft-card {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border: 1px solid rgba(226, 232, 240, 0.9) !important;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.06) !important;
+  backdrop-filter: blur(14px);
+}
+
+.stat-card {
+  position: relative;
+  overflow: hidden;
+  min-height: 130px;
+  border: 1px solid rgba(226, 232, 240, 0.9) !important;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.07) !important;
+}
+
+.stat-card::after {
+  content: '';
+  position: absolute;
+  right: -35px;
+  top: -35px;
+  width: 110px;
+  height: 110px;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.09);
+}
+
+.stat-label {
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.stat-value {
+  color: #0f172a;
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  margin-top: 8px;
+}
+
+.table-card {
+  overflow: hidden;
+  border: 1px solid rgba(226, 232, 240, 0.9) !important;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06) !important;
+}
+
+.v-table {
+  background: transparent !important;
+}
+
+.v-table th {
+  background: #f8fafc !important;
+  color: #475569 !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.v-table td {
+  color: #0f172a !important;
+  font-size: 14px !important;
+  border-bottom: 1px solid #eef2f7 !important;
+}
+
+.v-table tbody tr:hover {
+  background: #f8fafc !important;
+}
+
+.action-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.gradient-bg {
+  background:
+    radial-gradient(circle at top left, rgba(37, 99, 235, 0.18), transparent 35%),
+    radial-gradient(circle at bottom right, rgba(6, 182, 212, 0.16), transparent 30%),
+    linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+}
+
+.login-card {
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.18) !important;
+  backdrop-filter: blur(20px);
+}
+
+.brand-logo {
+  width: 54px;
+  height: 54px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  color: white;
+  background: linear-gradient(135deg, #2563eb, #06b6d4);
+  box-shadow: 0 18px 35px rgba(37, 99, 235, 0.35);
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 18px 16px;
+}
+
+.sidebar-logo {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  color: white;
+  background: linear-gradient(135deg, #2563eb, #06b6d4);
+  box-shadow: 0 12px 26px rgba(37, 99, 235, 0.28);
+}
+
+.sidebar-title {
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 15px;
+  line-height: 1.1;
+}
+
+.sidebar-subtitle {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 12px;
+  margin-top: 3px;
+}
+
+.professional-drawer {
+  background: linear-gradient(180deg, #0f172a 0%, #111827 100%) !important;
+  color: white !important;
+}
+
+.professional-drawer .v-list-item {
+  margin: 4px 10px;
+  border-radius: 14px !important;
+  color: rgba(255, 255, 255, 0.78) !important;
+}
+
+.professional-drawer .v-list-item-title {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+}
+
+.professional-drawer .v-list-item--active {
+  background: rgba(37, 99, 235, 0.22) !important;
+  color: #ffffff !important;
+}
+
+.professional-drawer .v-icon {
+  color: rgba(255, 255, 255, 0.82) !important;
+}
+
+.top-app-bar {
+  background: rgba(255, 255, 255, 0.86) !important;
+  backdrop-filter: blur(18px);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.85) !important;
+}
+
+.role-pill {
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #2563eb;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.content-shell {
+  min-height: calc(100vh - 64px);
+  padding: 24px;
+  background:
+    radial-gradient(circle at top right, rgba(37, 99, 235, 0.08), transparent 35%),
+    #f5f7fb;
+}
+
+@media (max-width: 768px) {
+  .content-shell {
+    padding: 14px;
+  }
+
+  .page-title {
+    font-size: 22px;
+  }
+
+  .stat-value {
+    font-size: 28px;
+  }
+}

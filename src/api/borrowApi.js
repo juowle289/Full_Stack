@@ -5,8 +5,8 @@ export const borrowApi = {
     return api.get('/api/circulation/borrows', { params })
   },
 
-  getMyBorrows() {
-    return api.get('/api/circulation/borrows/me')
+  getMyBorrows(params) {
+    return api.get('/api/circulation/borrows/me', { params })
   },
 
   create(data) {
@@ -17,12 +17,16 @@ export const borrowApi = {
     return api.put(`/api/circulation/borrows/${id}/return`, data)
   },
 
-  getOverdue() {
-    return api.get('/api/circulation/borrows/overdue')
+  getOverdue(params) {
+    return api.get('/api/circulation/borrows/overdue', { params })
   },
 
-  getFines() {
-    return api.get('/api/circulation/borrows/fines')
+  getFines(params) {
+    return api.get('/api/circulation/borrows/fines', { params })
+  },
+
+  getReaderFines(readerId) {
+    return api.get(`/api/circulation/borrows/reader/${readerId}/fines`)
   },
 
   payFine(id) {
