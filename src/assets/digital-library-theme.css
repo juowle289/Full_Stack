@@ -1,0 +1,102 @@
+/*
+ * Design tokens cho hệ thống "Thư Viện Số" (Digital Library)
+ * Đồng bộ với DESIGN.md xuất từ Stitch — dùng chung cho mọi trang Public/Marketing.
+ * Các trang Admin/Librarian/Reader (Vuetify) tham chiếu các biến này khi cần.
+ */
+
+:root {
+  /* Màu chính */
+  --dl-primary: #064e3b;          /* Forest Green - nút chính, brand */
+  --dl-primary-dark: #022c22;     /* Navy/Green đậm - header tối, footer */
+  --dl-secondary: #9b4500;        /* Amber đậm - link nhấn, hover */
+  --dl-accent-gold: #f59e0b;      /* Vàng gold - CTA phụ, badge */
+
+  /* Nền & bề mặt */
+  --dl-background: #f8faf6;
+  --dl-background-paper: #fdfcf7;
+  --dl-surface: #ffffff;
+  --dl-surface-paper: #f9f7f2;
+  --dl-surface-container-low: #f2f4f1;
+  --dl-surface-variant: #e1e3e0;
+  --dl-border: #e5e7eb;
+  --dl-outline: #707974;
+  --dl-outline-variant: #bfc9c3;
+
+  /* Văn bản */
+  --dl-text-primary: #111827;
+  --dl-text-muted: #4b5563;
+  --dl-on-surface-variant: #404944;
+
+  /* Trạng thái */
+  --dl-success: #059669;
+  --dl-warning: #d97706;
+  --dl-error: #dc2626;
+
+  /* Typography */
+  --dl-font-headline: 'Playfair Display', 'Times New Roman', serif;
+  --dl-font-body: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif;
+
+  /* Bo góc & khoảng cách */
+  --dl-radius-sm: 0.5rem;
+  --dl-radius-md: 0.75rem;
+  --dl-radius-lg: 1rem;
+  --dl-radius-full: 9999px;
+  --dl-shadow-soft: 0 10px 30px -10px rgba(0, 0, 0, 0.08);
+  --dl-shadow-card: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+/* Lớp tiện ích headline dùng chung cho mọi trang Public */
+.dl-page {
+  font-family: var(--dl-font-body);
+  color: var(--dl-text-primary);
+  background: var(--dl-background-paper);
+}
+
+.dl-headline-xl {
+  font-family: var(--dl-font-headline);
+  font-weight: 700;
+  font-size: clamp(32px, 4vw, 56px);
+  line-height: 1.15;
+  color: var(--dl-primary-dark);
+  letter-spacing: -0.01em;
+}
+
+.dl-headline-lg {
+  font-family: var(--dl-font-headline);
+  font-weight: 700;
+  font-size: clamp(26px, 3vw, 36px);
+  line-height: 1.25;
+  color: var(--dl-primary-dark);
+}
+
+.dl-headline-md {
+  font-family: var(--dl-font-headline);
+  font-weight: 600;
+  font-size: 24px;
+  line-height: 1.3;
+  color: var(--dl-primary-dark);
+}
+
+.dl-body-lg {
+  font-size: 18px;
+  line-height: 1.6;
+  color: var(--dl-text-muted);
+}
+
+.dl-label {
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+}
+
+.dl-grain-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.dl-soft-shadow {
+  box-shadow: var(--dl-shadow-soft);
+}

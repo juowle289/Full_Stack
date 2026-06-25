@@ -2,6 +2,10 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
 
 import HomeView from '../views/public/HomeView.vue'
+import CatalogView from '../views/public/CatalogView.vue'
+import GuideView from '../views/public/GuideView.vue'
+import AboutView from '../views/public/AboutView.vue'
+import ContactView from '../views/public/ContactView.vue'
 import LoginView from '../views/auth/LoginView.vue'
 import RegisterView from '../views/auth/RegisterView.vue'
 import MainLayout from '../layouts/MainLayout.vue'
@@ -21,6 +25,22 @@ const routes = [
   {
     path: '/',
     component: HomeView
+  },
+  {
+    path: '/catalog',
+    component: CatalogView
+  },
+  {
+    path: '/guide',
+    component: GuideView
+  },
+  {
+    path: '/about',
+    component: AboutView
+  },
+  {
+    path: '/contact',
+    component: ContactView
   },
   {
     path: '/login',
