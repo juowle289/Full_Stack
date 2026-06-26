@@ -13,13 +13,17 @@ import MainLayout from '../layouts/MainLayout.vue'
 import DashboardView from '../views/dashboard/DashboardView.vue'
 import BookListView from '../views/books/BookListView.vue'
 import BorrowListView from '../views/borrows/BorrowListView.vue'
-import BorrowCreateView from '../views/borrows/BorrowCreateView.vue'
+import CirculationDeskView from '../views/borrows/BorrowCreateView.vue'
 import ReaderListView from '../views/readers/ReaderListView.vue'
 import FineListView from '../views/borrows/FineListView.vue'
 import OverdueListView from '../views/borrows/OverdueListView.vue'
+import AccountsView from '../views/admin/AccountsView.vue'
+import ProfileView from '../views/shared/ProfileView.vue'
 
 import MyBorrowHistoryView from '../views/reader/MyBorrowHistoryView.vue'
 import MyLibraryCardView from '../views/reader/MyLibraryCardView.vue'
+import MyFinesView from '../views/reader/MyFinesView.vue'
+import ReaderBrowseView from '../views/reader/ReaderBrowseView.vue'
 
 const routes = [
   {
@@ -57,8 +61,10 @@ const routes = [
     children: [
       {
         path: '',
-        redirect: '/app/books'
+        redirect: '/app/dashboard'
       },
+
+      // ─── Admin + Librarian ───
       {
         path: 'dashboard',
         component: DashboardView,
@@ -67,7 +73,7 @@ const routes = [
       {
         path: 'books',
         component: BookListView,
-        meta: { roles: ['Admin', 'Librarian', 'Reader'] }
+        meta: { roles: ['Admin', 'Librarian'] }
       },
       {
         path: 'readers',
@@ -80,8 +86,8 @@ const routes = [
         meta: { roles: ['Admin', 'Librarian'] }
       },
       {
-        path: 'borrow-create',
-        component: BorrowCreateView,
+        path: 'circulation',
+        component: CirculationDeskView,
         meta: { roles: ['Admin', 'Librarian'] }
       },
       {
@@ -94,6 +100,20 @@ const routes = [
         component: FineListView,
         meta: { roles: ['Admin', 'Librarian'] }
       },
+
+      // ─── Admin riêng ───
+      {
+        path: 'accounts',
+        component: AccountsView,
+        meta: { roles: ['Admin'] }
+      },
+
+      // ─── Reader riêng ───
+      {
+        path: 'browse',
+        component: ReaderBrowseView,
+        meta: { roles: ['Reader'] }
+      },
       {
         path: 'my-borrows',
         component: MyBorrowHistoryView,
@@ -103,6 +123,18 @@ const routes = [
         path: 'my-card',
         component: MyLibraryCardView,
         meta: { roles: ['Reader'] }
+      },
+      {
+        path: 'my-fines',
+        component: MyFinesView,
+        meta: { roles: ['Reader'] }
+      },
+
+      // ─── Dùng chung cả 3 vai trò ───
+      {
+        path: 'profile',
+        component: ProfileView,
+        meta: { roles: ['Admin', 'Librarian', 'Reader'] }
       }
     ]
   },
@@ -126,7 +158,7 @@ const routes = [
   },
   {
     path: '/borrow-create',
-    redirect: '/app/borrow-create'
+    redirect: '/app/circulation'
   },
   {
     path: '/overdue',
@@ -151,6 +183,12 @@ const router = createRouter({
   routes
 })
 
+function homeForRole(role) {
+  if (['Admin', 'Librarian'].includes(role)) return '/app/dashboard'
+  if (role === 'Reader') return '/app/browse'
+  return '/'
+}
+
 router.beforeEach((to) => {
   const auth = useAuthStore()
 
@@ -165,15 +203,11 @@ router.beforeEach((to) => {
   }
 
   if ((to.path === '/login' || to.path === '/register') && auth.isLoggedIn) {
-    if (['Admin', 'Librarian'].includes(auth.role)) {
-      return '/app/dashboard'
-    }
-
-    return '/app/books'
+    return homeForRole(auth.role)
   }
 
   if (to.meta.roles && !to.meta.roles.includes(auth.role)) {
-    return '/app/books'
+    return homeForRole(auth.role)
   }
 })
 

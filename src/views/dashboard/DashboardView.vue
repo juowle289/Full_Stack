@@ -6,264 +6,337 @@
         <div class="breadcrumb">
           <span>Console</span>
           <v-icon icon="mdi-chevron-right" size="16" />
-          <b>Dashboard</b>
+          <b>{{ isAdmin ? 'Tổng quan hệ thống' : 'Tổng quan hoạt động' }}</b>
         </div>
 
-        <h1>Dashboard</h1>
-        <p>Tổng quan hoạt động thư viện toàn hệ thống</p>
+        <h1>{{ isAdmin ? 'Tổng quan thư viện' : 'Tổng quan hoạt động' }}</h1>
+        <p>{{ todayLabel }}</p>
       </div>
 
-      <v-btn
-        color="primary"
-        rounded="lg"
-        prepend-icon="mdi-refresh"
-        :loading="loading"
-        @click="loadDashboard"
-      >
+      <v-btn color="primary" rounded="lg" prepend-icon="mdi-refresh" :loading="loading" @click="loadDashboard">
         Tải lại
       </v-btn>
     </div>
 
-    <v-alert
-      v-if="message"
-      type="error"
-      variant="tonal"
-      rounded="lg"
-      class="mb-5"
-    >
+    <v-alert v-if="message" type="error" variant="tonal" rounded="lg" class="mb-5">
       {{ message }}
     </v-alert>
 
-    <!-- Stats -->
-    <section class="stats-grid">
-      <v-card
-        v-for="card in summaryCards"
-        :key="card.title"
-        class="stat-card"
-      >
-        <div class="stat-icon" :class="card.iconClass">
-          <v-icon :icon="card.icon" size="30" />
-        </div>
-
-        <div>
-          <div class="stat-label">{{ card.title }}</div>
-          <div class="stat-value">{{ card.value }}</div>
-          <div class="stat-subtitle">{{ card.subtitle }}</div>
-        </div>
-      </v-card>
-    </section>
-
-    <!-- Analytics -->
-    <section class="analytics-grid">
-      <!-- Bar chart -->
-      <v-card class="analytics-card">
-        <div class="card-header">
-          <div>
-            <h2>Thống kê mượn/trả</h2>
-            <p>Dữ liệu tổng hợp từ Report Service</p>
+    <!-- ════════ ADMIN: phân tích toàn hệ thống ════════ -->
+    <template v-if="isAdmin">
+      <!-- Stats -->
+      <section class="stats-grid">
+        <v-card v-for="card in summaryCards" :key="card.title" class="stat-card">
+          <div class="stat-icon" :class="card.iconClass">
+            <v-icon :icon="card.icon" size="30" />
           </div>
 
-          <v-chip color="secondary" variant="tonal" size="small">
-            Năm 2026
-          </v-chip>
-        </div>
+          <div>
+            <div class="stat-label">{{ card.title }}</div>
+            <div class="stat-value">{{ card.value }}</div>
+            <div class="stat-subtitle">{{ card.subtitle }}</div>
+          </div>
+        </v-card>
+      </section>
 
-        <div class="bar-chart">
-          <div
-            v-for="bar in chartBars"
-            :key="bar.label"
-            class="bar-item"
-          >
-            <div class="bar-track">
-              <div
-                class="bar-fill"
-                :style="{ height: bar.height + '%' }"
-              ></div>
+      <!-- Analytics -->
+      <section class="analytics-grid">
+        <!-- Bar chart -->
+        <v-card class="analytics-card">
+          <div class="card-header">
+            <div>
+              <h2>Thống kê mượn/trả</h2>
+              <p>Dữ liệu tổng hợp từ Report Service</p>
             </div>
 
-            <div class="bar-label">{{ bar.label }}</div>
-            <div class="bar-value">{{ formatNumber(bar.value) }}</div>
+            <v-chip color="secondary" variant="tonal" size="small">
+              Năm 2026
+            </v-chip>
           </div>
-        </div>
-      </v-card>
 
-      <!-- Donut summary -->
-      <v-card class="analytics-card">
-        <div class="card-header">
-          <div>
-            <h2>Tỷ lệ mượn/trả</h2>
-            <p>So sánh lượt mượn, lượt trả và sách đang mượn</p>
+          <div class="bar-chart">
+            <div v-for="bar in chartBars" :key="bar.label" class="bar-item">
+              <div class="bar-track">
+                <div class="bar-fill" :style="{ height: bar.height + '%' }"></div>
+              </div>
+
+              <div class="bar-label">{{ bar.label }}</div>
+              <div class="bar-value">{{ formatNumber(bar.value) }}</div>
+            </div>
           </div>
-        </div>
+        </v-card>
 
-        <div class="donut-layout">
-          <div class="donut-chart" :style="donutStyle">
-            <div class="donut-inner">
-              <strong>{{ returnedRate }}%</strong>
-              <span>Đã trả</span>
+        <!-- Donut summary -->
+        <v-card class="analytics-card">
+          <div class="card-header">
+            <div>
+              <h2>Tỷ lệ mượn/trả</h2>
+              <p>So sánh lượt mượn, lượt trả và sách đang mượn</p>
             </div>
           </div>
 
-          <div class="legend-list">
-            <div class="legend-item">
-              <span class="legend-dot dot-borrow"></span>
+          <div class="donut-layout">
+            <div class="donut-chart" :style="donutStyle">
+              <div class="donut-inner">
+                <strong>{{ returnedRate }}%</strong>
+                <span>Đã trả</span>
+              </div>
+            </div>
+
+            <div class="legend-list">
+              <div class="legend-item">
+                <span class="legend-dot dot-borrow"></span>
+                <div>
+                  <b>{{ formatNumber(dashboard.totalBorrowed) }}</b>
+                  <p>Tổng lượt mượn</p>
+                </div>
+              </div>
+
+              <div class="legend-item">
+                <span class="legend-dot dot-return"></span>
+                <div>
+                  <b>{{ formatNumber(dashboard.totalReturned) }}</b>
+                  <p>Tổng lượt trả</p>
+                </div>
+              </div>
+
+              <div class="legend-item">
+                <span class="legend-dot dot-current"></span>
+                <div>
+                  <b>{{ formatNumber(dashboard.currentlyBorrowing) }}</b>
+                  <p>Đang mượn</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </v-card>
+      </section>
+
+      <!-- Tables -->
+      <section class="table-grid">
+        <v-card class="table-card">
+          <div class="table-card-header">
+            <div>
+              <h2>Top sách được mượn nhiều</h2>
+              <p>Danh sách sách có số lượt mượn cao nhất</p>
+            </div>
+
+            <v-btn color="secondary" variant="text" append-icon="mdi-arrow-right" to="/app/books">
+              Xem sách
+            </v-btn>
+          </div>
+
+          <div class="table-scroll">
+            <v-table>
+              <thead>
+                <tr>
+                  <th>Mã sách</th>
+                  <th>Tên sách</th>
+                  <th class="text-right">Số lượt mượn</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr v-for="book in topBooks" :key="book.bookId">
+                  <td>
+                    <span class="code-text">{{ shortId(book.bookId) }}</span>
+                  </td>
+
+                  <td>
+                    <div class="book-name">{{ book.bookTitle }}</div>
+                  </td>
+
+                  <td class="text-right">
+                    <v-chip color="secondary" variant="tonal" size="small">
+                      {{ formatNumber(book.borrowCount) }}
+                    </v-chip>
+                  </td>
+                </tr>
+
+                <tr v-if="topBooks.length === 0 && !loading">
+                  <td colspan="3" class="text-center pa-8">
+                    <v-icon icon="mdi-book-search-outline" size="44" color="grey" />
+                    <div class="empty-title">Chưa có dữ liệu top sách</div>
+                    <div class="empty-text">
+                      Dữ liệu sẽ xuất hiện sau khi có phát sinh phiếu mượn.
+                    </div>
+                  </td>
+                </tr>
+
+                <tr v-if="loading">
+                  <td colspan="3" class="text-center pa-8">
+                    <v-progress-circular indeterminate color="primary" />
+                    <div class="mt-3 text-grey-darken-1">Đang tải dữ liệu...</div>
+                  </td>
+                </tr>
+              </tbody>
+            </v-table>
+          </div>
+        </v-card>
+
+        <v-card class="table-card">
+          <div class="table-card-header">
+            <div>
+              <h2>Tổng quan báo cáo</h2>
+              <p>Các chỉ số được đồng bộ từ Identity & Report Service</p>
+            </div>
+          </div>
+
+          <div class="report-list">
+            <div class="report-item">
+              <div class="report-icon bg-blue">
+                <v-icon icon="mdi-account-group" />
+              </div>
+
+              <div>
+                <b>{{ formatNumber(dashboard.totalReaders) }}</b>
+                <p>Độc giả đang được quản lý trong hệ thống</p>
+              </div>
+            </div>
+
+            <div class="report-item">
+              <div class="report-icon bg-cyan">
+                <v-icon icon="mdi-book-arrow-right" />
+              </div>
+
               <div>
                 <b>{{ formatNumber(dashboard.totalBorrowed) }}</b>
-                <p>Tổng lượt mượn</p>
+                <p>Tổng lượt mượn đã ghi nhận</p>
               </div>
             </div>
 
-            <div class="legend-item">
-              <span class="legend-dot dot-return"></span>
+            <div class="report-item">
+              <div class="report-icon bg-green">
+                <v-icon icon="mdi-book-check" />
+              </div>
+
               <div>
                 <b>{{ formatNumber(dashboard.totalReturned) }}</b>
-                <p>Tổng lượt trả</p>
+                <p>Tổng lượt trả sách đã hoàn tất</p>
               </div>
             </div>
 
-            <div class="legend-item">
-              <span class="legend-dot dot-current"></span>
+            <div class="report-item">
+              <div class="report-icon bg-red">
+                <v-icon icon="mdi-cash-alert" />
+              </div>
+
               <div>
-                <b>{{ formatNumber(dashboard.currentlyBorrowing) }}</b>
-                <p>Đang mượn</p>
+                <b>{{ formatMoney(dashboard.totalFineAmount) }}</b>
+                <p>Tổng số tiền phạt phát sinh</p>
               </div>
             </div>
           </div>
-        </div>
-      </v-card>
-    </section>
+        </v-card>
+      </section>
+    </template>
 
-    <!-- Tables -->
-    <section class="table-grid">
-      <v-card class="table-card">
-        <div class="table-card-header">
+    <!-- ════════ LIBRARIAN: vận hành hàng ngày ════════ -->
+    <template v-else-if="isLibrarian">
+      <section class="stats-grid stats-grid-ops">
+        <v-card class="stat-card">
+          <div class="stat-icon icon-blue">
+            <v-icon icon="mdi-book-arrow-right" size="30" />
+          </div>
           <div>
-            <h2>Top sách được mượn nhiều</h2>
-            <p>Danh sách sách có số lượt mượn cao nhất</p>
+            <div class="stat-label">Phiếu mượn hôm nay</div>
+            <div class="stat-value">{{ todayBorrowCount }}</div>
           </div>
+        </v-card>
 
-          <v-btn
-            color="secondary"
-            variant="text"
-            append-icon="mdi-arrow-right"
-            to="/app/books"
-          >
-            Xem sách
-          </v-btn>
-        </div>
-
-        <div class="table-scroll">
-          <v-table>
-            <thead>
-              <tr>
-                <th>Mã sách</th>
-                <th>Tên sách</th>
-                <th class="text-right">Số lượt mượn</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              <tr
-                v-for="book in topBooks"
-                :key="book.bookId"
-              >
-                <td>
-                  <span class="code-text">{{ shortId(book.bookId) }}</span>
-                </td>
-
-                <td>
-                  <div class="book-name">{{ book.bookTitle }}</div>
-                </td>
-
-                <td class="text-right">
-                  <v-chip color="secondary" variant="tonal" size="small">
-                    {{ formatNumber(book.borrowCount) }}
-                  </v-chip>
-                </td>
-              </tr>
-
-              <tr v-if="topBooks.length === 0 && !loading">
-                <td colspan="3" class="text-center pa-8">
-                  <v-icon icon="mdi-book-search-outline" size="44" color="grey" />
-                  <div class="empty-title">Chưa có dữ liệu top sách</div>
-                  <div class="empty-text">
-                    Dữ liệu sẽ xuất hiện sau khi có phát sinh phiếu mượn.
-                  </div>
-                </td>
-              </tr>
-
-              <tr v-if="loading">
-                <td colspan="3" class="text-center pa-8">
-                  <v-progress-circular indeterminate color="primary" />
-                  <div class="mt-3 text-grey-darken-1">Đang tải dữ liệu...</div>
-                </td>
-              </tr>
-            </tbody>
-          </v-table>
-        </div>
-      </v-card>
-
-      <v-card class="table-card">
-        <div class="table-card-header">
+        <v-card class="stat-card">
+          <div class="stat-icon icon-green">
+            <v-icon icon="mdi-book-check" size="30" />
+          </div>
           <div>
-            <h2>Tổng quan báo cáo</h2>
-            <p>Các chỉ số được đồng bộ từ Identity & Report Service</p>
+            <div class="stat-label">Phiếu trả hôm nay</div>
+            <div class="stat-value">{{ todayReturnCount }}</div>
           </div>
-        </div>
+        </v-card>
 
-        <div class="report-list">
-          <div class="report-item">
-            <div class="report-icon bg-blue">
-              <v-icon icon="mdi-account-group" />
-            </div>
+        <v-card class="stat-card stat-card-warning">
+          <div class="stat-icon icon-red">
+            <v-icon icon="mdi-alert-circle" size="30" />
+          </div>
+          <div>
+            <div class="stat-label">Sách quá hạn cần xử lý</div>
+            <div class="stat-value">{{ overdueList.length }}</div>
+          </div>
+        </v-card>
+      </section>
 
+      <section class="ops-grid">
+        <v-card class="analytics-card">
+          <div class="card-header">
             <div>
-              <b>{{ formatNumber(dashboard.totalReaders) }}</b>
-              <p>Độc giả đang được quản lý trong hệ thống</p>
+              <h2>Việc cần làm hôm nay</h2>
+              <p>Ưu tiên xử lý các phiếu quá hạn lâu nhất</p>
             </div>
+            <v-btn color="secondary" variant="text" append-icon="mdi-arrow-right" to="/app/overdue">
+              Xem tất cả
+            </v-btn>
           </div>
 
-          <div class="report-item">
-            <div class="report-icon bg-cyan">
-              <v-icon icon="mdi-book-arrow-right" />
-            </div>
+          <div v-if="!overdueList.length" class="empty-ops">
+            <v-icon icon="mdi-check-circle-outline" size="36" color="var(--dl-success)" />
+            <p>Không có việc tồn đọng nào hôm nay 🎉</p>
+          </div>
 
+          <div v-else class="task-list">
+            <div v-for="item in overdueList.slice(0, 5)" :key="item.id" class="task-item">
+              <div class="task-icon"><v-icon icon="mdi-alert" size="18" /></div>
+              <div class="task-info">
+                <div class="task-title">Liên hệ độc giả quá hạn: {{ item.readerName }}</div>
+                <div class="task-meta">
+                  Sách "{{ item.bookTitle }}" đã quá hạn {{ overdueDays(item) }} ngày.
+                </div>
+              </div>
+              <v-btn size="small" variant="tonal" color="primary" to="/app/circulation">Xử lý ngay</v-btn>
+            </div>
+          </div>
+        </v-card>
+
+        <v-card class="analytics-card">
+          <div class="card-header">
             <div>
-              <b>{{ formatNumber(dashboard.totalBorrowed) }}</b>
-              <p>Tổng lượt mượn đã ghi nhận</p>
+              <h2>Hoạt động gần đây</h2>
+              <p>Giao dịch mượn/trả mới nhất</p>
             </div>
           </div>
 
-          <div class="report-item">
-            <div class="report-icon bg-green">
-              <v-icon icon="mdi-book-check" />
+          <div class="activity-list">
+            <div v-for="item in recentActivity" :key="item.id + (item.activityType || '')" class="activity-item">
+              <span class="activity-dot" :class="item.activityType === 'return' ? 'dot-return' : 'dot-borrow'"></span>
+              <div>
+                <p>
+                  <strong>{{ item.readerName }}</strong>
+                  {{ item.activityType === 'return' ? 'đã trả' : 'đã mượn' }}
+                  cuốn "{{ item.bookTitle }}"
+                </p>
+                <span class="activity-time">{{ formatDateTime(item.activityType === 'return' ? item.returnDate :
+                  item.borrowDate) }}</span>
+              </div>
             </div>
 
-            <div>
-              <b>{{ formatNumber(dashboard.totalReturned) }}</b>
-              <p>Tổng lượt trả sách đã hoàn tất</p>
+            <div v-if="!recentActivity.length" class="empty-ops">
+              <p>Chưa có hoạt động nào được ghi nhận.</p>
             </div>
           </div>
-
-          <div class="report-item">
-            <div class="report-icon bg-red">
-              <v-icon icon="mdi-cash-alert" />
-            </div>
-
-            <div>
-              <b>{{ formatMoney(dashboard.totalFineAmount) }}</b>
-              <p>Tổng số tiền phạt phát sinh</p>
-            </div>
-          </div>
-        </div>
-      </v-card>
-    </section>
+        </v-card>
+      </section>
+    </template>
   </div>
 </template>
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { reportApi } from '../../api/reportApi'
+import { borrowApi } from '../../api/borrowApi'
+import { useAuthStore } from '../../stores/authStore'
+
+const auth = useAuthStore()
+const isAdmin = computed(() => auth.role === 'Admin')
+const isLibrarian = computed(() => auth.role === 'Librarian')
 
 const loading = ref(false)
 const message = ref('')
@@ -276,6 +349,54 @@ const dashboard = ref({
   totalFineAmount: 0,
   topBooks: []
 })
+
+const allBorrows = ref([])
+const overdueList = ref([])
+
+const todayLabel = computed(() => {
+  const now = new Date()
+  return `Hôm nay, ${now.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })}`
+})
+
+function isSameDay(value, ref = new Date()) {
+  if (!value) return false
+  const d = new Date(value)
+  return d.toDateString() === ref.toDateString()
+}
+
+const todayBorrowCount = computed(() =>
+  allBorrows.value.filter(b => isSameDay(b.borrowDate)).length
+)
+
+const todayReturnCount = computed(() =>
+  allBorrows.value.filter(b => b.returnDate && isSameDay(b.returnDate)).length
+)
+
+const recentActivity = computed(() => {
+  const events = []
+
+  allBorrows.value.forEach(b => {
+    events.push({ ...b, activityType: 'borrow', sortTime: b.borrowDate })
+    if (b.returnDate) {
+      events.push({ ...b, activityType: 'return', sortTime: b.returnDate })
+    }
+  })
+
+  return events
+    .sort((a, b) => new Date(b.sortTime) - new Date(a.sortTime))
+    .slice(0, 6)
+})
+
+function overdueDays(record) {
+  if (!record?.dueDate) return 0
+  const diff = Math.floor((Date.now() - new Date(record.dueDate).getTime()) / 86400000)
+  return diff > 0 ? diff : 0
+}
+
+function formatDateTime(value) {
+  if (!value) return '-'
+  return new Date(value).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })
+}
 
 const topBooks = computed(() => dashboard.value.topBooks || [])
 
@@ -348,7 +469,7 @@ const donutStyle = computed(() => {
   const current = Math.max(0, 100 - returned)
 
   return {
-    background: `conic-gradient(#00687a 0% ${returned}%, #57dffe ${returned}% ${returned + current}%, #dce9ff ${returned + current}% 100%)`
+    background: `conic-gradient(var(--dl-primary) 0% ${returned}%, var(--dl-accent-gold) ${returned}% ${returned + current}%, var(--dl-surface-variant) ${returned + current}% 100%)`
   }
 })
 
@@ -357,12 +478,20 @@ async function loadDashboard() {
   message.value = ''
 
   try {
-    const res = await reportApi.dashboard()
+    if (isAdmin.value) {
+      const res = await reportApi.dashboard()
 
-    dashboard.value = {
-      ...dashboard.value,
-      ...res.data,
-      topBooks: res.data?.topBooks || []
+      dashboard.value = {
+        ...dashboard.value,
+        ...res.data,
+        topBooks: res.data?.topBooks || []
+      }
+    } else if (isLibrarian.value) {
+      const res = await borrowApi.getAll()
+      allBorrows.value = res.data || []
+      overdueList.value = allBorrows.value
+        .filter(b => !b.returnDate && overdueDays(b) > 0)
+        .sort((a, b) => overdueDays(b) - overdueDays(a))
     }
   } catch (err) {
     message.value = err.response?.data?.message || 'Không tải được dữ liệu dashboard'
@@ -390,7 +519,11 @@ onMounted(loadDashboard)
 
 <style scoped>
 .dashboard-page {
-  color: #0b1c30;
+  color: var(--dl-text-primary);
+}
+
+.dashboard-header h1 {
+  font-family: var(--dl-font-headline);
 }
 
 .dashboard-header {
@@ -469,8 +602,8 @@ onMounted(loadDashboard)
 }
 
 .icon-cyan {
-  color: #00687a;
-  background: #acedff;
+  color: var(--dl-primary);
+  background: rgba(6, 78, 59, 0.1);
 }
 
 .icon-green {
@@ -586,7 +719,7 @@ onMounted(loadDashboard)
   width: 100%;
   min-height: 14px;
   border-radius: 12px 12px 4px 4px;
-  background: linear-gradient(180deg, #57dffe, #00687a);
+  background: linear-gradient(180deg, var(--dl-accent-gold), var(--dl-primary));
   transition: height 0.6s ease;
 }
 
@@ -665,11 +798,11 @@ onMounted(loadDashboard)
 }
 
 .dot-borrow {
-  background: #57dffe;
+  background: var(--dl-accent-gold);
 }
 
 .dot-return {
-  background: #00687a;
+  background: var(--dl-primary);
 }
 
 .dot-current {
@@ -726,7 +859,7 @@ onMounted(loadDashboard)
 }
 
 .code-text {
-  color: #00687a;
+  color: var(--dl-primary);
   font-weight: 1000;
 }
 
@@ -778,8 +911,8 @@ onMounted(loadDashboard)
 }
 
 .bg-cyan {
-  color: #00687a;
-  background: #acedff;
+  color: var(--dl-primary);
+  background: rgba(6, 78, 59, 0.1);
 }
 
 .bg-green {
@@ -804,6 +937,102 @@ onMounted(loadDashboard)
   margin-top: 2px;
 }
 
+.stats-grid-ops {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.stat-card-warning {
+  border-color: rgba(220, 38, 38, 0.25) !important;
+  background: rgba(220, 38, 38, 0.03) !important;
+}
+
+.ops-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 28px;
+}
+
+.empty-ops {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--dl-text-muted);
+  font-size: 14px;
+}
+
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.task-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: var(--dl-radius-md);
+  background: rgba(220, 38, 38, 0.05);
+}
+
+.task-icon {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(220, 38, 38, 0.12);
+  color: var(--dl-error);
+}
+
+.task-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.task-title {
+  font-weight: 700;
+  font-size: 13.5px;
+  color: var(--dl-text-primary);
+}
+
+.task-meta {
+  font-size: 12.5px;
+  color: var(--dl-text-muted);
+  margin-top: 2px;
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.activity-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  margin-top: 6px;
+  flex: 0 0 auto;
+}
+
+.activity-item p {
+  font-size: 13.5px;
+  color: var(--dl-text-primary);
+  margin: 0;
+}
+
+.activity-time {
+  font-size: 12px;
+  color: var(--dl-text-muted);
+}
+
 @media (max-width: 1280px) {
   .stats-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -811,6 +1040,12 @@ onMounted(loadDashboard)
 
   .analytics-grid,
   .table-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 960px) {
+  .ops-grid {
     grid-template-columns: 1fr;
   }
 }

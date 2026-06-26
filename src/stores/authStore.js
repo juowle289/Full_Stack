@@ -10,7 +10,9 @@ export const useAuthStore = defineStore('auth', {
   getters: {
     isLoggedIn: (state) => !!state.token,
     role: (state) => state.user?.role || '',
-    fullName: (state) => state.user?.fullName || ''
+    fullName: (state) => state.user?.fullName || '',
+    email: (state) => state.user?.email || '',
+    userId: (state) => state.user?.userId || state.user?.id || ''
   },
 
   actions: {

@@ -22,6 +22,15 @@
 
       <v-btn
         color="primary"
+        variant="outlined"
+        prepend-icon="mdi-swap-horizontal-circle-outline"
+        @click="$router.push('/app/circulation')"
+      >
+        Quầy lưu thông
+      </v-btn>
+
+      <v-btn
+        color="primary"
         prepend-icon="mdi-plus"
         @click="openCreateDialog"
       >
