@@ -1,162 +1,138 @@
 <template>
-  <v-app>
-    <v-main>
-      <div class="login-page">
-        <main class="login-shell">
-          <!-- Left: Form -->
-          <section class="login-form-section">
-            <div class="login-form-wrapper">
-              <router-link to="/" class="login-brand">
-                <div class="login-brand-icon">
-                  <v-icon icon="mdi-library" size="30" />
-                </div>
-                <span>Thư viện Số</span>
-              </router-link>
+  <div class="auth-page">
+    <div class="auth-shell">
+      <!-- Left: Form -->
+      <section class="auth-form-section">
+        <div class="auth-form-wrapper">
+          <div class="auth-top-row">
+            <router-link to="/" class="auth-brand">
+              <v-icon icon="mdi-bookshelf" size="22" />
+              <span>Thư Viện Số</span>
+            </router-link>
 
-              <div class="login-heading">
-                <h1>Chào mừng trở lại</h1>
-                <p>Vui lòng đăng nhập để truy cập hệ thống quản lý thư viện số.</p>
-              </div>
+            <router-link to="/" class="back-home-link">
+              <v-icon icon="mdi-arrow-left" size="16" />
+              Trang chủ
+            </router-link>
+          </div>
 
-              <v-alert
-                v-if="error"
-                type="error"
-                variant="tonal"
-                rounded="lg"
-                class="mb-5"
-              >
-                {{ error }}
-              </v-alert>
+          <div class="auth-heading">
+            <h1>Chào mừng trở lại</h1>
+            <p>Đăng nhập để tiếp tục hành trình tri thức của bạn.</p>
+          </div>
 
-              <form class="login-form" @submit.prevent="handleLogin">
-                <v-text-field
+          <div v-if="error" class="error-banner">
+            <v-icon icon="mdi-alert-circle" size="20" />
+            <div>
+              <div class="error-title">Đăng nhập không thành công</div>
+              <div class="error-message">{{ error }}</div>
+            </div>
+          </div>
+
+          <form class="auth-form" @submit.prevent="handleLogin">
+            <div class="field-group">
+              <label>Email</label>
+              <div class="input-wrap" :class="{ 'input-error': error }">
+                <v-icon icon="mdi-email-outline" size="20" />
+                <input
                   v-model="email"
-                  label="Email"
                   type="email"
-                  prepend-inner-icon="mdi-email-outline"
-                  placeholder="Nhập email đăng nhập"
+                  placeholder="Ví dụ: nva@gmail.com"
                   autocomplete="email"
                   :disabled="loading"
+                  @keyup.enter="handleLogin"
                 />
+                <v-icon v-if="error" icon="mdi-alert" size="18" color="var(--dl-error)" />
+              </div>
+            </div>
 
-                <v-text-field
+            <div class="field-group">
+              <div class="field-label-row">
+                <label>Mật khẩu</label>
+                <button type="button" class="link-btn" @click="showForgotMessage">Quên mật khẩu?</button>
+              </div>
+
+              <div class="input-wrap" :class="{ 'input-error': error }">
+                <v-icon icon="mdi-lock-outline" size="20" />
+                <input
                   v-model="password"
-                  label="Mật khẩu"
                   :type="showPassword ? 'text' : 'password'"
-                  prepend-inner-icon="mdi-lock-outline"
-                  :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
                   placeholder="Nhập mật khẩu"
                   autocomplete="current-password"
                   :disabled="loading"
-                  @click:append-inner="showPassword = !showPassword"
                   @keyup.enter="handleLogin"
                 />
-
-                <div class="login-options">
-                  <v-checkbox
-                    v-model="rememberMe"
-                    label="Ghi nhớ đăng nhập"
-                    density="compact"
-                    hide-details
-                    color="secondary"
-                  />
-
-                  <button
-                    type="button"
-                    class="forgot-link"
-                    @click="showForgotMessage"
-                  >
-                    Quên mật khẩu?
-                  </button>
-                </div>
-
-                <v-btn
-                  type="submit"
-                  color="primary"
-                  size="large"
-                  block
-                  rounded="lg"
-                  prepend-icon="mdi-login"
-                  :loading="loading"
-                >
-                  Đăng nhập
-                </v-btn>
-
-                <div class="divider">
-                  <span>Hoặc tiếp tục với</span>
-                </div>
-
-                <v-btn
-                  type="button"
-                  variant="outlined"
-                  color="secondary"
-                  size="large"
-                  block
-                  rounded="lg"
-                  class="google-btn"
-                  @click="showGoogleMessage"
-                >
-                  <span class="google-icon">
-                    <svg viewBox="0 0 24 24">
-                      <path
-                        fill="#4285F4"
-                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                      />
-                      <path
-                        fill="#34A853"
-                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                      />
-                      <path
-                        fill="#FBBC05"
-                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                      />
-                      <path
-                        fill="#EA4335"
-                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                      />
-                    </svg>
-                  </span>
-                  Đăng nhập với Google
-                </v-btn>
-              </form>
-
-              <p class="register-text">
-                Chưa có tài khoản?
-                <router-link to="/register">Đăng ký ngay</router-link>
-              </p>
-
-              <div class="back-home">
-                <router-link to="/">
-                  <v-icon icon="mdi-arrow-left" size="18" />
-                  Quay về trang chủ
-                </router-link>
+                <button type="button" class="eye-btn" @click="showPassword = !showPassword">
+                  <v-icon :icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'" size="20" />
+                </button>
               </div>
             </div>
-          </section>
 
-          <!-- Right: Visual -->
-          <section class="login-visual-section">
-            <div class="visual-pattern"></div>
-            <div class="orb orb-1"></div>
-            <div class="orb orb-2"></div>
+            <label class="remember-row">
+              <input v-model="rememberMe" type="checkbox" />
+              <span>Ghi nhớ đăng nhập</span>
+            </label>
 
-            <div class="quote-card">
-              <v-icon icon="mdi-format-quote-open" size="58" color="secondary" />
+            <v-btn
+              type="submit"
+              color="primary"
+              size="large"
+              block
+              rounded="lg"
+              :loading="loading"
+            >
+              Đăng nhập
+            </v-btn>
 
-              <blockquote>
-                “Thư viện không chỉ là nơi lưu trữ sách, mà là cánh cổng mở ra những khả năng vô tận của tri thức.”
-              </blockquote>
+            <div class="divider"><span>hoặc</span></div>
 
-              <div class="quote-footer">
-                <div class="quote-line"></div>
-                <span>Hệ thống thư viện số</span>
-              </div>
+            <button type="button" class="google-btn" @click="showGoogleMessage">
+              <svg viewBox="0 0 24 24" class="google-icon">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+              </svg>
+              Đăng nhập bằng Google
+            </button>
+          </form>
+
+          <p class="switch-text">
+            Chưa có tài khoản?
+            <router-link to="/register">Đăng ký ngay</router-link>
+          </p>
+        </div>
+      </section>
+
+      <!-- Right: Visual -->
+      <section class="auth-visual-section">
+        <div class="visual-grain"></div>
+
+        <div class="quote-card">
+          <v-icon icon="mdi-format-quote-open" size="40" color="var(--dl-accent-gold)" />
+
+          <blockquote>
+            "Thư viện không chỉ là nơi lưu trữ sách, mà là cánh cửa mở ra những thế giới chưa từng được khám phá."
+          </blockquote>
+
+          <div class="quote-footer">
+            <div class="quote-line"></div>
+            <div>
+              <div class="quote-name">TRI THỨC SỐ</div>
+              <div class="quote-role">Kết nối quá khứ và tương lai</div>
             </div>
-          </section>
-        </main>
-      </div>
-    </v-main>
-  </v-app>
+          </div>
+        </div>
+
+        <div class="visual-badges">
+          <span class="visual-badge"><v-icon icon="mdi-book-open-page-variant-outline" size="16" /> +10.000 Đầu sách</span>
+          <span class="visual-badge"><v-icon icon="mdi-school-outline" size="16" /> Tài liệu học thuật</span>
+        </div>
+
+        <div class="visual-caption">Nền tảng Thư viện Hiện đại</div>
+      </section>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -173,6 +149,12 @@ const rememberMe = ref(false)
 
 const router = useRouter()
 const auth = useAuthStore()
+
+function homeForRole(role) {
+  if (['Admin', 'Librarian'].includes(role)) return '/app/dashboard'
+  if (role === 'Reader') return '/app/browse'
+  return '/'
+}
 
 async function handleLogin() {
   error.value = ''
@@ -198,15 +180,9 @@ async function handleLogin() {
       localStorage.removeItem('rememberEmail')
     }
 
-    if (['Admin', 'Librarian'].includes(user.role)) {
-      router.push('/app/dashboard')
-    } else if (user.role === 'Reader') {
-      router.push('/app/books')
-    } else {
-      router.push('/app/books')
-    }
+    router.push(homeForRole(user.role))
   } catch (err) {
-    error.value = err.response?.data?.message || 'Đăng nhập thất bại'
+    error.value = err.response?.data?.message || 'Email hoặc mật khẩu không đúng. Vui lòng kiểm tra lại thông tin và thử lại.'
     console.error(err.response || err)
   } finally {
     loading.value = false
@@ -223,105 +199,205 @@ function showGoogleMessage() {
 </script>
 
 <style scoped>
-.login-page {
-  min-height: 100vh;
-  background: #f8f9ff;
-  color: #0b1c30;
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+* {
+  box-sizing: border-box;
 }
 
-.login-shell {
+.auth-page {
   min-height: 100vh;
-  display: flex;
+  background: var(--dl-background-paper);
+  font-family: var(--dl-font-body);
 }
 
-.login-form-section {
-  width: 50%;
+.auth-shell {
   min-height: 100vh;
-  background: #ffffff;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.auth-form-section {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 48px 72px;
+  padding: 48px 64px;
 }
 
-.login-form-wrapper {
+.auth-form-wrapper {
   width: 100%;
-  max-width: 480px;
+  max-width: 440px;
 }
 
-.login-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  color: #0f172a;
-  text-decoration: none;
-  font-size: 24px;
-  font-weight: 950;
-  margin-bottom: 54px;
-}
-
-.login-brand-icon {
-  width: 46px;
-  height: 46px;
-  border-radius: 16px;
-  display: grid;
-  place-items: center;
-  color: #00687a;
-  background: #acedff;
-}
-
-.login-heading {
-  margin-bottom: 32px;
-}
-
-.login-heading h1 {
-  color: #0f172a;
-  font-size: clamp(38px, 4vw, 54px);
-  line-height: 1.05;
-  letter-spacing: -0.06em;
-  font-weight: 1000;
-  margin-bottom: 16px;
-}
-
-.login-heading p {
-  color: #45464d;
-  font-size: 18px;
-  line-height: 1.65;
-}
-
-.login-form {
-  display: grid;
-  gap: 18px;
-}
-
-.login-options {
+.auth-top-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  margin-top: -4px;
+  margin-bottom: 64px;
 }
 
-.forgot-link {
+.auth-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  font-family: var(--dl-font-headline);
+  font-weight: 700;
+  font-size: 19px;
+  color: var(--dl-primary-dark);
+}
+
+.back-home-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--dl-text-muted);
+}
+
+.back-home-link:hover {
+  color: var(--dl-primary);
+}
+
+.auth-heading h1 {
+  font-family: var(--dl-font-headline);
+  font-weight: 700;
+  font-size: clamp(30px, 4vw, 38px);
+  color: var(--dl-primary-dark);
+  margin-bottom: 8px;
+}
+
+.auth-heading p {
+  color: var(--dl-text-muted);
+  font-size: 15px;
+  margin-bottom: 28px;
+}
+
+.error-banner {
+  display: flex;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: var(--dl-radius-md);
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid rgba(220, 38, 38, 0.25);
+  color: var(--dl-error);
+  margin-bottom: 22px;
+}
+
+.error-title {
+  font-weight: 700;
+  font-size: 13.5px;
+}
+
+.error-message {
+  font-size: 12.5px;
+  margin-top: 2px;
+  opacity: 0.92;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.field-group label {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--dl-text-primary);
+  margin-bottom: 6px;
+}
+
+.field-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.field-label-row label {
+  margin-bottom: 0;
+}
+
+.link-btn {
   border: none;
-  background: transparent;
-  color: #00687a;
-  font-weight: 900;
+  background: none;
+  padding: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--dl-secondary);
   cursor: pointer;
-  white-space: nowrap;
 }
 
-.forgot-link:hover {
-  color: #0f172a;
+.link-btn:hover {
   text-decoration: underline;
+}
+
+.input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--dl-radius-md);
+  border: 1px solid var(--dl-border);
+  background: var(--dl-surface);
+  color: var(--dl-text-muted);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-wrap:focus-within {
+  border-color: var(--dl-primary);
+  box-shadow: 0 0 0 3px rgba(6, 78, 59, 0.1);
+}
+
+.input-wrap.input-error {
+  border-color: var(--dl-error);
+}
+
+.input-wrap.input-error:focus-within {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.input-wrap input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14.5px;
+  color: var(--dl-text-primary);
+  min-width: 0;
+}
+
+.eye-btn {
+  border: none;
+  background: none;
+  padding: 0;
+  display: flex;
+  color: var(--dl-text-muted);
+  cursor: pointer;
+}
+
+.remember-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  color: var(--dl-text-primary);
+  cursor: pointer;
+}
+
+.remember-row input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--dl-primary);
 }
 
 .divider {
   position: relative;
   display: flex;
   justify-content: center;
-  margin: 8px 0;
+  margin: 2px 0;
 }
 
 .divider::before {
@@ -330,181 +406,167 @@ function showGoogleMessage() {
   top: 50%;
   left: 0;
   width: 100%;
-  border-top: 1px solid #d7deeb;
+  border-top: 1px solid var(--dl-border);
 }
 
 .divider span {
   position: relative;
-  z-index: 2;
-  background: #ffffff;
+  background: var(--dl-background-paper);
   padding: 0 12px;
-  color: #64748b;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 700;
+  color: var(--dl-text-muted);
 }
 
 .google-btn {
-  text-transform: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 13px;
+  border-radius: var(--dl-radius-md);
+  border: 1px solid var(--dl-border);
+  background: var(--dl-surface);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--dl-text-primary);
+  cursor: pointer;
+}
+
+.google-btn:hover {
+  background: var(--dl-surface-container-low);
 }
 
 .google-icon {
-  width: 20px;
-  height: 20px;
-  display: inline-flex;
-  margin-right: 8px;
+  width: 18px;
+  height: 18px;
 }
 
-.google-icon svg {
-  width: 20px;
-  height: 20px;
-}
-
-.register-text {
-  margin-top: 26px;
+.switch-text {
+  margin-top: 28px;
   text-align: center;
-  color: #45464d;
-  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--dl-text-muted);
 }
 
-.register-text a {
-  color: #00687a;
-  font-weight: 950;
+.switch-text a {
+  color: var(--dl-primary);
+  font-weight: 700;
   text-decoration: none;
 }
 
-.register-text a:hover {
-  color: #0f172a;
+.switch-text a:hover {
   text-decoration: underline;
 }
 
-.back-home {
-  margin-top: 18px;
-  display: flex;
-  justify-content: center;
-}
-
-.back-home a {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: #64748b;
-  text-decoration: none;
-  font-weight: 800;
-}
-
-.back-home a:hover {
-  color: #00687a;
-}
-
-.login-visual-section {
-  width: 50%;
-  min-height: 100vh;
+/* Visual panel */
+.auth-visual-section {
   position: relative;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at center, rgba(0, 104, 122, 0.22), transparent 42%),
-    linear-gradient(135deg, #131b2e 0%, #0f172a 52%, #111827 100%);
+  background: linear-gradient(160deg, var(--dl-primary-dark) 0%, #01140f 100%);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 72px;
+  padding: 64px;
+  overflow: hidden;
 }
 
-.visual-pattern {
+.visual-grain {
   position: absolute;
   inset: 0;
-  opacity: 0.2;
-  background-image: radial-gradient(circle, rgba(172, 237, 255, 0.85) 1px, transparent 1px);
-  background-size: 40px 40px;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 .quote-card {
   position: relative;
-  z-index: 2;
-  max-width: 560px;
-  padding: 48px;
-  border-radius: 28px;
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(18px);
-  border: 1px solid rgba(255, 255, 255, 0.62);
-  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.24);
+  z-index: 1;
+  max-width: 480px;
+  padding: 36px;
+  border-radius: var(--dl-radius-lg);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .quote-card blockquote {
-  color: #131b2e;
-  font-size: clamp(26px, 3vw, 34px);
-  line-height: 1.35;
-  font-weight: 850;
-  letter-spacing: -0.03em;
-  margin: 22px 0 28px;
+  font-family: var(--dl-font-headline);
+  color: #fff;
+  font-size: clamp(20px, 2.4vw, 25px);
+  line-height: 1.5;
+  font-weight: 700;
+  margin: 18px 0 24px;
 }
 
 .quote-footer {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 14px;
 }
 
 .quote-line {
-  width: 52px;
-  height: 4px;
-  background: #00687a;
+  width: 36px;
+  height: 3px;
+  background: var(--dl-accent-gold);
   border-radius: 999px;
 }
 
-.quote-footer span {
-  color: #45464d;
-  font-size: 13px;
-  font-weight: 950;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
+.quote-name {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--dl-accent-gold);
 }
 
-.orb {
+.quote-role {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.visual-badges {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.visual-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  padding: 7px 14px;
+  border-radius: var(--dl-radius-full);
+}
+
+.visual-caption {
   position: absolute;
-  border-radius: 999px;
-  filter: blur(80px);
-  pointer-events: none;
-}
-
-.orb-1 {
-  top: 22%;
-  right: -110px;
-  width: 380px;
-  height: 380px;
-  background: rgba(87, 223, 254, 0.34);
-}
-
-.orb-2 {
-  bottom: -90px;
-  left: 22%;
-  width: 340px;
-  height: 340px;
-  background: rgba(190, 198, 224, 0.28);
+  bottom: 28px;
+  right: 40px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
 }
 
 @media (max-width: 960px) {
-  .login-shell {
-    display: block;
+  .auth-shell {
+    grid-template-columns: 1fr;
   }
 
-  .login-form-section {
-    width: 100%;
-    min-height: 100vh;
-    padding: 40px 22px;
-  }
-
-  .login-brand {
-    margin-bottom: 36px;
-  }
-
-  .login-visual-section {
+  .auth-visual-section {
     display: none;
   }
 
-  .login-options {
-    align-items: flex-start;
-    flex-direction: column;
+  .auth-form-section {
+    padding: 36px 22px;
+  }
+
+  .auth-top-row {
+    margin-bottom: 40px;
   }
 }
 </style>

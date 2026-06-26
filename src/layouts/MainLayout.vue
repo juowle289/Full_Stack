@@ -167,7 +167,9 @@ const navItems = computed(() => {
       { title: 'Quản lý tài khoản', icon: 'mdi-account-key-outline', to: '/app/accounts' },
       { title: 'Phiếu mượn/trả', icon: 'mdi-clipboard-text-outline', to: '/app/borrows' },
       { title: 'Sách quá hạn', icon: 'mdi-alert-circle-outline', to: '/app/overdue' },
-      { title: 'Công nợ phí phạt', icon: 'mdi-cash-multiple', to: '/app/fines' }
+      { title: 'Công nợ phí phạt', icon: 'mdi-cash-multiple', to: '/app/fines' },
+      { title: 'Báo cáo & thống kê', icon: 'mdi-chart-bar', to: '/app/reports' },
+      { title: 'Cấu hình hệ thống', icon: 'mdi-cog-outline', to: '/app/settings' }
     ]
   }
 

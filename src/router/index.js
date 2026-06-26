@@ -18,6 +18,8 @@ import ReaderListView from '../views/readers/ReaderListView.vue'
 import FineListView from '../views/borrows/FineListView.vue'
 import OverdueListView from '../views/borrows/OverdueListView.vue'
 import AccountsView from '../views/admin/AccountsView.vue'
+import ReportsView from '../views/admin/ReportsView.vue'
+import SettingsView from '../views/admin/SettingsView.vue'
 import ProfileView from '../views/shared/ProfileView.vue'
 
 import MyBorrowHistoryView from '../views/reader/MyBorrowHistoryView.vue'
@@ -105,6 +107,16 @@ const routes = [
       {
         path: 'accounts',
         component: AccountsView,
+        meta: { roles: ['Admin'] }
+      },
+      {
+        path: 'reports',
+        component: ReportsView,
+        meta: { roles: ['Admin'] }
+      },
+      {
+        path: 'settings',
+        component: SettingsView,
         meta: { roles: ['Admin'] }
       },
 
