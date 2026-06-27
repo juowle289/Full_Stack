@@ -16,10 +16,7 @@
         <form class="hero-search" @submit.prevent="goSearch">
           <v-icon icon="mdi-magnify" color="#707974" size="22" />
 
-          <input
-            v-model="searchKeyword"
-            placeholder="Tìm kiếm sách, tác giả, chuyên mục..."
-          />
+          <input v-model="searchKeyword" placeholder="Tìm kiếm sách, tác giả, chuyên mục..." />
 
           <v-btn color="primary" rounded="pill" size="large" type="submit">
             Tìm kiếm
@@ -28,13 +25,8 @@
 
         <div class="hero-topics">
           <span class="hero-topics-label">Chủ đề phổ biến:</span>
-          <button
-            v-for="topic in popularTopics"
-            :key="topic"
-            class="topic-pill"
-            type="button"
-            @click="goToCategory(topic)"
-          >
+          <button v-for="topic in popularTopics" :key="topic" class="topic-pill" type="button"
+            @click="goToCategory(topic)">
             {{ topic }}
           </button>
         </div>
@@ -75,26 +67,14 @@
       </div>
 
       <div v-else-if="newBooks.length" class="books-row">
-        <router-link
-          v-for="book in newBooks"
-          :key="book.id"
-          to="/catalog"
-          class="book-card"
-        >
+        <router-link v-for="book in newBooks" :key="book.id" to="/catalog" class="book-card">
           <div class="book-cover">
-            <img
-              v-if="book.coverImageUrl"
-              :src="book.coverImageUrl"
-              :alt="book.title"
-            />
+            <img v-if="book.coverImageUrl" :src="book.coverImageUrl" :alt="book.title" />
             <div v-else class="book-cover-fallback">
               <v-icon icon="mdi-book-open-page-variant" size="28" />
             </div>
 
-            <span
-              class="book-badge"
-              :class="isAvailable(book) ? 'badge-available' : 'badge-unavailable'"
-            >
+            <span class="book-badge" :class="isAvailable(book) ? 'badge-available' : 'badge-unavailable'">
               {{ isAvailable(book) ? 'Còn sách' : 'Đã mượn' }}
             </span>
           </div>
@@ -145,7 +125,7 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import PublicLayout from '../../layouts/PublicLayout.vue'
-import { bookApi } from '../../api/bookApi'
+import { bookApi } from '../../api/bookApi.js'
 
 const router = useRouter()
 
@@ -502,8 +482,13 @@ onMounted(loadNewBooks)
 }
 
 @keyframes dl-shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .empty-state {

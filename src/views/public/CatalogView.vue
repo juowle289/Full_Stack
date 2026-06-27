@@ -15,11 +15,8 @@
             <div class="filter-group-title">Danh mục</div>
 
             <label v-for="cat in categoryOptions" :key="cat.name" class="filter-checkbox">
-              <input
-                type="checkbox"
-                :checked="selectedCategories.includes(cat.name)"
-                @change="toggleCategory(cat.name)"
-              />
+              <input type="checkbox" :checked="selectedCategories.includes(cat.name)"
+                @change="toggleCategory(cat.name)" />
               <span>{{ cat.name }} ({{ cat.count }})</span>
             </label>
 
@@ -35,14 +32,8 @@
             </label>
           </div>
 
-          <v-btn
-            v-if="selectedCategories.length || onlyAvailable || keyword"
-            variant="text"
-            color="secondary"
-            size="small"
-            class="reset-filter-btn"
-            @click="resetFilters"
-          >
+          <v-btn v-if="selectedCategories.length || onlyAvailable || keyword" variant="text" color="secondary"
+            size="small" class="reset-filter-btn" @click="resetFilters">
             Xóa bộ lọc
           </v-btn>
         </aside>
@@ -84,10 +75,7 @@
                     <v-icon icon="mdi-book-open-page-variant" size="30" />
                   </div>
 
-                  <span
-                    class="book-badge"
-                    :class="isAvailable(book) ? 'badge-available' : 'badge-unavailable'"
-                  >
+                  <span class="book-badge" :class="isAvailable(book) ? 'badge-available' : 'badge-unavailable'">
                     {{ isAvailable(book) ? 'Còn sách' : 'Đã mượn' }}
                   </span>
                 </div>
@@ -99,12 +87,9 @@
                   <div class="book-footer-row">
                     <span class="book-category-chip">{{ book.category || 'Khác' }}</span>
 
-                    <button
-                      class="reserve-btn"
-                      type="button"
+                    <button class="reserve-btn" type="button"
                       :title="isAvailable(book) ? 'Đăng nhập để đặt giữ sách' : 'Hiện đã hết sách'"
-                      @click="handleReserve(book)"
-                    >
+                      @click="handleReserve(book)">
                       <v-icon icon="mdi-bookmark-plus-outline" size="18" />
                     </button>
                   </div>
@@ -117,13 +102,8 @@
                 <v-icon icon="mdi-chevron-left" size="18" />
               </button>
 
-              <button
-                v-for="p in totalPages"
-                :key="p"
-                class="page-btn"
-                :class="{ 'page-btn-active': p === page }"
-                @click="page = p"
-              >
+              <button v-for="p in totalPages" :key="p" class="page-btn" :class="{ 'page-btn-active': p === page }"
+                @click="page = p">
                 {{ p }}
               </button>
 
@@ -142,8 +122,8 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import PublicLayout from '../../layouts/PublicLayout.vue'
-import { useAuthStore } from '../../stores/authStore'
-import { bookApi } from '../../api/bookApi'
+import { useAuthStore } from '../../stores/authStore.js'
+import { bookApi } from '../../api/bookApi.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -490,8 +470,13 @@ onMounted(loadBooks)
 }
 
 @keyframes dl-shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .empty-state {

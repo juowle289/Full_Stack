@@ -105,6 +105,185 @@ body {
   margin-bottom: 20px;
 }
 
+/* Toolbar tìm kiếm/lọc dùng chung cho các trang quản lý (Books, Readers, ...) */
+.toolbar-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  flex: 1;
+  min-width: 240px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--dl-radius-md, 12px);
+  background: var(--dl-surface, #fff);
+  border: 1px solid var(--dl-surface-variant, #e1e3e0);
+}
+
+.search-box input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+}
+
+.toolbar-select {
+  max-width: 200px;
+}
+
+/* Thanh chọn nhiều tĩnh trên đầu bảng (khác kiểu floating bar) - dùng cho Readers, Accounts... */
+.select-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 18px;
+  flex-wrap: wrap;
+}
+
+.select-all-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.toolbar-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: none;
+  padding: 6px 12px;
+  border-radius: var(--dl-radius-sm, 8px);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--dl-primary, #064e3b);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.toolbar-action:hover {
+  background: var(--dl-surface-container-low, #f2f4f1);
+}
+
+.toolbar-action-disabled {
+  color: var(--dl-text-muted, #9ca3af) !important;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.result-count {
+  font-size: 13px;
+  color: var(--dl-text-muted, #6b7280);
+  white-space: nowrap;
+}
+
+.dialog-title {
+  font-family: var(--dl-font-headline, serif);
+  font-weight: 700;
+}
+
+.min-width-0 {
+  min-width: 0;
+}
+
+/* Thanh hành động hàng loạt dạng nổi (floating) - dùng cho Books, Overdue... */
+.bulk-bar {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 20px;
+  border-radius: var(--dl-radius-full, 999px);
+  background: var(--dl-primary-dark, #022c22);
+  color: #fff;
+  box-shadow: 0 16px 40px rgba(2, 44, 34, 0.35);
+}
+
+.bulk-count {
+  font-size: 13.5px;
+  white-space: nowrap;
+}
+
+.bulk-divider {
+  height: 22px;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+.bulk-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: var(--dl-radius-full, 999px);
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.bulk-btn-danger {
+  background: rgba(220, 38, 38, 0.18);
+  color: #fecaca;
+}
+
+.bulk-btn-danger:hover {
+  background: var(--dl-error, #dc2626);
+  color: #fff;
+}
+
+.bulk-btn-gold {
+  background: rgba(245, 158, 11, 0.2);
+  color: var(--dl-accent-gold, #f59e0b);
+}
+
+.bulk-btn-gold:hover {
+  background: var(--dl-accent-gold, #f59e0b);
+  color: #1a1300;
+}
+
+.bulk-btn-ghost {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.bulk-btn-ghost:hover {
+  color: #fff;
+}
+
+.dl-fade-enter-active,
+.dl-fade-leave-active,
+.dl-slide-enter-active,
+.dl-slide-leave-active {
+  transition: all 0.22s ease;
+}
+
+.dl-fade-enter-from,
+.dl-fade-leave-to {
+  opacity: 0;
+  transform: translate(-50%, 10px);
+}
+
+.dl-slide-enter-from,
+.dl-slide-leave-to {
+  opacity: 0;
+  transform: translateX(16px);
+}
+
 .gradient-bg {
   background:
     radial-gradient(circle at top left, rgba(37, 99, 235, 0.18), transparent 35%),

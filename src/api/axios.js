@@ -1,32 +1,31 @@
-import axios from "axios";
+import axios from 'axios'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
-  timeout: 15000,
-});
+  timeout: 15000
+})
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("accessToken");
+  const token = localStorage.getItem('accessToken')
 
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+    config.headers.Authorization = `Bearer ${token}`
   }
 
-  return config;
-});
+  return config
+})
 
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    const hadToken = !!localStorage.getItem('accessToken')
     const isAuthEndpoint = error.config?.url?.includes('/auth/login') ||
       error.config?.url?.includes('/auth/register')
 
-    // Chỉ tự ép về /login khi TRƯỚC ĐÓ đã có token (phiên đăng nhập thật sự
-    // hết hạn/không hợp lệ). Nếu đang duyệt web ẩn danh (chưa từng đăng nhập)
-    // mà một API nào đó yêu cầu quyền và trả 401, KHÔNG redirect — để
-    // component tự xử lý (hiện empty state), vì đây là trang public.
-    if (error.response?.status === 401 && !isAuthEndpoint && hadToken) {
+    // Chỉ tự động đăng xuất + chuyển về /login khi 401 xảy ra trên một phiên
+    // ĐÃ đăng nhập (token hết hạn/không hợp lệ). Nếu 401 đến từ chính request
+    // đăng nhập/đăng ký (sai email/mật khẩu), để component tự hiển thị lỗi,
+    // không reload trang - tránh xóa mất thông báo lỗi vừa hiện ra.
+    if (error.response?.status === 401 && !isAuthEndpoint) {
       localStorage.removeItem('accessToken')
       localStorage.removeItem('user')
 
@@ -39,4 +38,4 @@ api.interceptors.response.use(
   }
 )
 
-export default api;
+export default api

@@ -31,154 +31,99 @@
       {{ message }}
     </v-alert>
 
-    <v-row class="mb-5">
-      <v-col cols="12" md="3">
-        <v-card class="stat-card pa-5">
-          <div class="d-flex align-center justify-space-between">
-            <div>
-              <div class="stat-label">Tổng độc giả</div>
-              <div class="stat-value">{{ readers.length }}</div>
-            </div>
+    <div class="toolbar-row">
+      <div class="search-box">
+        <v-icon icon="mdi-magnify" size="20" />
+        <input v-model="keyword" placeholder="Tìm mã độc giả, tên, email, số thẻ..." />
+      </div>
 
-            <v-avatar color="primary" variant="tonal" size="54">
-              <v-icon icon="mdi-account-group" size="28" />
-            </v-avatar>
-          </div>
-        </v-card>
-      </v-col>
+      <v-menu v-model="filterMenu" :close-on-content-click="false" location="bottom end">
+        <template #activator="{ props }">
+          <v-btn v-bind="props" variant="outlined" color="primary" prepend-icon="mdi-filter-variant">
+            Lọc danh sách
+            <v-badge v-if="activeFilterCount" :content="activeFilterCount" color="error" inline />
+          </v-btn>
+        </template>
 
-      <v-col cols="12" md="3">
-        <v-card class="stat-card pa-5">
-          <div class="d-flex align-center justify-space-between">
-            <div>
-              <div class="stat-label">Tài khoản hoạt động</div>
-              <div class="stat-value">{{ activeUserCount }}</div>
-            </div>
-
-            <v-avatar color="success" variant="tonal" size="54">
-              <v-icon icon="mdi-account-check" size="28" />
-            </v-avatar>
-          </div>
-        </v-card>
-      </v-col>
-
-      <v-col cols="12" md="3">
-        <v-card class="stat-card pa-5">
-          <div class="d-flex align-center justify-space-between">
-            <div>
-              <div class="stat-label">Tài khoản bị khóa</div>
-              <div class="stat-value">{{ lockedUserCount }}</div>
-            </div>
-
-            <v-avatar color="error" variant="tonal" size="54">
-              <v-icon icon="mdi-account-lock" size="28" />
-            </v-avatar>
-          </div>
-        </v-card>
-      </v-col>
-
-      <v-col cols="12" md="3">
-        <v-card class="stat-card pa-5">
-          <div class="d-flex align-center justify-space-between">
-            <div>
-              <div class="stat-label">Thẻ hết hạn</div>
-              <div class="stat-value">{{ expiredCardCount }}</div>
-            </div>
-
-            <v-avatar color="warning" variant="tonal" size="54">
-              <v-icon icon="mdi-card-account-details-star" size="28" />
-            </v-avatar>
-          </div>
-        </v-card>
-      </v-col>
-    </v-row>
-
-    <v-card class="soft-card pa-5 mb-5">
-      <v-row align="center">
-        <v-col cols="12" md="4">
-          <v-text-field
-            v-model="keyword"
-            label="Tìm mã độc giả / tên / email / số thẻ"
-            prepend-inner-icon="mdi-magnify"
-            clearable
-            hide-details
-          />
-        </v-col>
-
-        <v-col cols="12" md="2">
+        <v-card width="320" class="pa-4">
           <v-select
             v-model="userStatusFilter"
-            label="Trạng thái TK"
+            label="Trạng thái tài khoản"
             :items="userStatusOptions"
-            prepend-inner-icon="mdi-account-filter"
             clearable
             hide-details
+            class="mb-3"
           />
-        </v-col>
 
-        <v-col cols="12" md="2">
           <v-select
             v-model="cardStatusFilter"
             label="Trạng thái thẻ"
             :items="cardStatusOptions"
-            prepend-inner-icon="mdi-card-account-details"
             clearable
             hide-details
+            class="mb-3"
           />
-        </v-col>
 
-        <v-col cols="12" md="2">
-          <v-text-field
-            v-model="expiredFromDate"
-            label="Hạn thẻ từ"
-            type="date"
-            prepend-inner-icon="mdi-calendar-start"
-            clearable
-            hide-details
-          />
-        </v-col>
+          <div class="text-caption text-grey-darken-1 mb-1">Hạn thẻ từ ngày</div>
+          <v-text-field v-model="expiredFromDate" type="date" density="comfortable" hide-details class="mb-3" />
 
-        <v-col cols="12" md="2">
-          <div class="d-flex ga-2">
-            <v-text-field
-              v-model="expiredToDate"
-              label="Hạn thẻ đến"
-              type="date"
-              prepend-inner-icon="mdi-calendar-end"
-              clearable
-              hide-details
-            />
+          <div class="text-caption text-grey-darken-1 mb-1">Đến ngày</div>
+          <v-text-field v-model="expiredToDate" type="date" density="comfortable" hide-details class="mb-4" />
 
-            <v-tooltip text="Xóa bộ lọc">
-              <template #activator="{ props }">
-                <v-btn
-                  v-bind="props"
-                  color="secondary"
-                  variant="tonal"
-                  icon="mdi-filter-remove"
-                  @click="resetFilters"
-                />
-              </template>
-            </v-tooltip>
-          </div>
-        </v-col>
-      </v-row>
-    </v-card>
+          <v-btn block variant="tonal" color="secondary" @click="resetFilters">Xóa bộ lọc</v-btn>
+        </v-card>
+      </v-menu>
+    </div>
 
     <v-card class="table-card">
+      <!-- Thanh chọn nhiều - tĩnh trên đầu bảng, giống Stitch (khác kiểu floating bar của trang Sách) -->
+      <div class="select-toolbar">
+        <label class="select-all-label">
+          <v-checkbox-btn
+            :model-value="allSelected"
+            :indeterminate="isIndeterminate"
+            color="primary"
+            @update:model-value="toggleSelectAll"
+          />
+          Chọn tất cả
+        </label>
+
+        <v-divider vertical class="mx-2" />
+
+        <button
+          class="toolbar-action"
+          :class="{ 'toolbar-action-disabled': !selectedReaderIds.length || !canManageCard }"
+          type="button"
+          :disabled="!selectedReaderIds.length || !canManageCard"
+          @click="confirmBulkLock = true"
+        >
+          <v-icon icon="mdi-card-off-outline" size="18" />
+          Khóa thẻ
+        </button>
+
+        <button class="toolbar-action" type="button" @click="exportCsv">
+          <v-icon icon="mdi-download-outline" size="18" />
+          Xuất dữ liệu
+        </button>
+
+        <v-spacer />
+
+        <div class="result-count">
+          Hiển thị <b>{{ paginatedReaders.length }}</b> / <b>{{ filteredReaders.length }}</b> độc giả
+        </div>
+      </div>
+
+      <v-divider />
+
       <div class="table-scroll">
         <v-table>
           <thead>
             <tr>
-              <th>Mã độc giả</th>
+              <th style="width: 44px;"></th>
               <th>Độc giả</th>
-              <th>Email</th>
-              <th>SĐT</th>
+              <th>Liên hệ</th>
               <th>Địa chỉ</th>
-              <th>Trạng thái TK</th>
-              <th>Số thẻ</th>
-              <th>Hạn thẻ</th>
-              <th>Trạng thái thẻ</th>
+              <th>Trạng thái</th>
               <th class="text-center">Hành động</th>
             </tr>
           </thead>
@@ -186,12 +131,7 @@
           <tbody>
             <tr v-for="reader in paginatedReaders" :key="reader.userId">
               <td>
-                <div class="font-weight-bold text-primary">
-                  {{ getReaderCode(reader) }}
-                </div>
-                <div class="text-caption text-grey-darken-1">
-                  ID: {{ shortId(reader.userId) }}
-                </div>
+                <v-checkbox-btn v-model="selectedReaderIds" :value="reader.userId" color="primary" />
               </td>
 
               <td>
@@ -200,173 +140,95 @@
                     <v-icon icon="mdi-account" />
                   </v-avatar>
 
-                  <div>
-                    <div class="font-weight-bold">
-                      {{ reader.fullName }}
-                    </div>
-                    <div class="text-caption text-grey-darken-1">
-                      {{ reader.studentCode || 'Chưa có mã SV' }}
-                    </div>
+                  <div class="min-width-0">
+                    <div class="font-weight-bold text-truncate">{{ reader.fullName }}</div>
+                    <div class="text-caption text-grey-darken-1">ID: {{ getReaderCode(reader) }}</div>
                   </div>
                 </div>
               </td>
 
-              <td>{{ reader.email }}</td>
-              <td>{{ reader.phone || '-' }}</td>
               <td>
-                <div class="address-cell">
-                  {{ reader.address || '-' }}
-                </div>
+                <div class="text-body-2">{{ reader.email }}</div>
+                <div class="text-caption text-grey-darken-1">{{ reader.phone || '-' }}</div>
+              </td>
+
+              <td>
+                <div class="address-cell">{{ reader.address || '-' }}</div>
               </td>
 
               <td>
                 <v-chip
-                  :color="getUserStatusColor(reader.userStatus)"
+                  :color="readerOverallStatusColor(reader)"
                   size="small"
                   variant="tonal"
                 >
-                  <v-icon
-                    start
-                    :icon="reader.userStatus === 'Active' ? 'mdi-account-check' : 'mdi-account-lock'"
-                  />
-                  {{ getUserStatusText(reader.userStatus) }}
+                  <v-icon start :icon="readerOverallStatusIcon(reader)" />
+                  {{ readerOverallStatusText(reader) }}
                 </v-chip>
               </td>
 
               <td>
-                <div class="font-weight-bold">
-                  {{ reader.cardNumber || '-' }}
-                </div>
-              </td>
-
-              <td>
-                <div>
-                  {{ formatDate(reader.expiredDate) }}
-                </div>
-
-                <div
-                  class="text-caption"
-                  :class="isCardExpired(reader) ? 'text-error' : 'text-grey-darken-1'"
-                >
-                  {{ getCardExpiredText(reader) }}
-                </div>
-              </td>
-
-              <td>
-                <v-chip
-                  :color="getCardStatusColor(reader.cardStatus)"
-                  size="small"
-                  variant="tonal"
-                >
-                  <v-icon
-                    start
-                    :icon="reader.cardStatus === 'Active' ? 'mdi-card-account-details-star' : 'mdi-card-account-details-outline'"
-                  />
-                  {{ getCardStatusText(reader.cardStatus) }}
-                </v-chip>
-              </td>
-
-              <td>
-                <div class="d-flex justify-center ga-2">
-                  <v-tooltip text="Xem thẻ">
+                <div class="d-flex justify-center">
+                  <v-menu location="bottom end">
                     <template #activator="{ props }">
-                      <v-btn
-                        v-bind="props"
-                        icon="mdi-card-account-details"
-                        size="small"
-                        color="info"
-                        variant="tonal"
-                        @click="viewCard(reader)"
-                      />
+                      <v-btn v-bind="props" icon="mdi-dots-vertical" size="small" variant="text" />
                     </template>
-                  </v-tooltip>
 
-                  <v-tooltip text="Gia hạn thẻ">
-                    <template #activator="{ props }">
-                      <v-btn
+                    <v-list density="compact">
+                      <v-list-item prepend-icon="mdi-card-account-details" title="Xem thẻ" @click="viewCard(reader)" />
+
+                      <v-list-item
                         v-if="canManageCard"
-                        v-bind="props"
-                        icon="mdi-calendar-plus"
-                        size="small"
-                        color="primary"
-                        variant="tonal"
-                        :loading="loadingId === reader.userId + '-renew'"
+                        prepend-icon="mdi-calendar-plus"
+                        title="Gia hạn thẻ"
                         @click="renewCard(reader)"
                       />
-                    </template>
-                  </v-tooltip>
 
-                  <v-tooltip text="Khóa thẻ">
-                    <template #activator="{ props }">
-                      <v-btn
+                      <v-list-item
                         v-if="canManageCard && reader.cardStatus === 'Active'"
-                        v-bind="props"
-                        icon="mdi-card-off"
-                        size="small"
-                        color="warning"
-                        variant="tonal"
-                        :loading="loadingId === reader.userId + '-lock-card'"
+                        prepend-icon="mdi-card-off"
+                        title="Khóa thẻ"
                         @click="lockCard(reader)"
                       />
-                    </template>
-                  </v-tooltip>
 
-                  <v-tooltip text="Mở khóa thẻ">
-                    <template #activator="{ props }">
-                      <v-btn
+                      <v-list-item
                         v-if="canManageCard && reader.cardStatus === 'Locked'"
-                        v-bind="props"
-                        icon="mdi-card-account-details-star"
-                        size="small"
-                        color="success"
-                        variant="tonal"
-                        :loading="loadingId === reader.userId + '-unlock-card'"
+                        prepend-icon="mdi-card-account-details-star"
+                        title="Mở khóa thẻ"
                         @click="unlockCard(reader)"
                       />
-                    </template>
-                  </v-tooltip>
 
-                  <v-tooltip text="Khóa tài khoản">
-                    <template #activator="{ props }">
-                      <v-btn
+                      <v-divider v-if="canManageUser" class="my-1" />
+
+                      <v-list-item
                         v-if="canManageUser && reader.userStatus === 'Active'"
-                        v-bind="props"
-                        icon="mdi-lock"
-                        size="small"
-                        color="error"
-                        variant="tonal"
-                        :loading="loadingId === reader.userId + '-lock-user'"
+                        prepend-icon="mdi-lock"
+                        title="Khóa tài khoản"
+                        base-color="error"
                         @click="lockUser(reader)"
                       />
-                    </template>
-                  </v-tooltip>
 
-                  <v-tooltip text="Mở tài khoản">
-                    <template #activator="{ props }">
-                      <v-btn
+                      <v-list-item
                         v-if="canManageUser && reader.userStatus === 'Locked'"
-                        v-bind="props"
-                        icon="mdi-lock-open"
-                        size="small"
-                        color="success"
-                        variant="tonal"
-                        :loading="loadingId === reader.userId + '-unlock-user'"
+                        prepend-icon="mdi-lock-open"
+                        title="Mở tài khoản"
+                        base-color="success"
                         @click="unlockUser(reader)"
                       />
-                    </template>
-                  </v-tooltip>
+                    </v-list>
+                  </v-menu>
                 </div>
               </td>
             </tr>
 
             <tr v-if="paginatedReaders.length === 0">
-              <td colspan="10" class="text-center pa-8">
+              <td colspan="6" class="text-center pa-8">
                 <v-icon icon="mdi-database-search-outline" size="46" color="grey" />
                 <div class="text-subtitle-1 font-weight-bold mt-2">
                   Không tìm thấy độc giả phù hợp
                 </div>
                 <div class="text-body-2 text-grey-darken-1">
-                  Thử thay đổi từ khóa, trạng thái tài khoản, trạng thái thẻ hoặc khoảng hạn thẻ.
+                  Thử thay đổi từ khóa hoặc bộ lọc đang chọn.
                 </div>
               </td>
             </tr>
@@ -405,6 +267,22 @@
         </div>
       </div>
     </v-card>
+
+    <!-- Confirm khóa thẻ hàng loạt -->
+    <v-dialog v-model="confirmBulkLock" max-width="420">
+      <v-card rounded="lg" class="pa-2">
+        <v-card-title class="dialog-title">Xác nhận khóa thẻ</v-card-title>
+        <v-card-text>
+          Khóa thẻ thư viện của <strong>{{ selectedReaderIds.length }}</strong> độc giả đã chọn?
+          Họ sẽ không thể mượn sách cho đến khi được mở khóa lại.
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="confirmBulkLock = false">Hủy</v-btn>
+          <v-btn color="error" :loading="bulkLocking" @click="bulkLockCards">Khóa thẻ</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <v-dialog v-model="cardDialog" max-width="760">
       <v-card v-if="selectedCard">
@@ -563,6 +441,11 @@ const success = ref(true)
 const cardDialog = ref(false)
 const selectedCard = ref(null)
 
+const filterMenu = ref(false)
+const selectedReaderIds = ref([])
+const confirmBulkLock = ref(false)
+const bulkLocking = ref(false)
+
 const userStatusOptions = [
   { title: 'Hoạt động', value: 'Active' },
   { title: 'Bị khóa', value: 'Locked' }
@@ -591,6 +474,98 @@ const lockedUserCount = computed(() =>
 const expiredCardCount = computed(() =>
   readers.value.filter(x => isCardExpired(x)).length
 )
+
+const activeFilterCount = computed(() => {
+  let count = 0
+  if (userStatusFilter.value) count++
+  if (cardStatusFilter.value) count++
+  if (expiredFromDate.value) count++
+  if (expiredToDate.value) count++
+  return count
+})
+
+const allSelected = computed(() =>
+  paginatedReaders.value.length > 0 &&
+  paginatedReaders.value.every(r => selectedReaderIds.value.includes(r.userId))
+)
+
+const isIndeterminate = computed(() =>
+  !allSelected.value && paginatedReaders.value.some(r => selectedReaderIds.value.includes(r.userId))
+)
+
+function toggleSelectAll(value) {
+  const pageIds = paginatedReaders.value.map(r => r.userId)
+
+  if (value) {
+    selectedReaderIds.value = [...new Set([...selectedReaderIds.value, ...pageIds])]
+  } else {
+    selectedReaderIds.value = selectedReaderIds.value.filter(id => !pageIds.includes(id))
+  }
+}
+
+function readerOverallStatusText(reader) {
+  if (reader.userStatus === 'Locked') return 'Tài khoản bị khóa'
+  return getCardStatusText(reader.cardStatus)
+}
+
+function readerOverallStatusColor(reader) {
+  if (reader.userStatus === 'Locked') return 'error'
+  return getCardStatusColor(reader.cardStatus)
+}
+
+function readerOverallStatusIcon(reader) {
+  if (reader.userStatus === 'Locked') return 'mdi-account-lock'
+  if (reader.cardStatus === 'Active') return 'mdi-card-account-details-star'
+  if (reader.cardStatus === 'Expired') return 'mdi-card-account-details-outline'
+  return 'mdi-card-off'
+}
+
+async function bulkLockCards() {
+  bulkLocking.value = true
+  message.value = ''
+
+  try {
+    for (const id of selectedReaderIds.value) {
+      await libraryCardApi.lockCard(id)
+    }
+
+    success.value = true
+    message.value = `Đã khóa thẻ của ${selectedReaderIds.value.length} độc giả`
+    selectedReaderIds.value = []
+    confirmBulkLock.value = false
+
+    await loadReaders()
+  } catch (err) {
+    success.value = false
+    message.value = err.response?.data?.message || 'Khóa thẻ hàng loạt thất bại'
+    console.error(err.response || err)
+  } finally {
+    bulkLocking.value = false
+  }
+}
+
+function exportCsv() {
+  const data = filteredReaders.value
+
+  if (!data.length) return
+
+  const header = ['Mã độc giả', 'Họ tên', 'Email', 'SĐT', 'Địa chỉ', 'Trạng thái TK', 'Trạng thái thẻ']
+  const body = data
+    .map(r => [getReaderCode(r), r.fullName, r.email, r.phone, r.address, getUserStatusText(r.userStatus), getCardStatusText(r.cardStatus)]
+      .map(v => `"${String(v ?? '').replace(/"/g, '""')}"`)
+      .join(','))
+    .join('\n')
+
+  const csv = `${header.join(',')}\n${body}`
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `danh-sach-doc-gia-${Date.now()}.csv`
+  link.click()
+  URL.revokeObjectURL(url)
+}
 
 const filteredReaders = computed(() => {
   let data = [...readers.value]
