@@ -190,17 +190,11 @@
         <v-table>
           <thead>
             <tr>
-              <th>Mã phiếu</th>
-              <th>Mã độc giả</th>
               <th>Độc giả</th>
-              <th>Mã sách</th>
               <th>Sách</th>
-              <th>Ngày mượn</th>
-              <th>Hạn trả</th>
-              <th>Ngày trả</th>
+              <th>Mượn / Trả</th>
               <th>Trạng thái</th>
               <th>Phí phạt</th>
-              <th>Thanh toán</th>
               <th class="text-center">Hành động</th>
             </tr>
           </thead>
@@ -208,40 +202,24 @@
           <tbody>
             <tr v-for="borrow in paginatedBorrows" :key="borrow.id">
               <td>
-                <div class="font-weight-bold text-primary">
-                  {{ shortId(borrow.id) }}
-                </div>
-              </td>
-
-              <td>
-                <div class="font-weight-bold">
-                  {{ getReaderCode(borrow) }}
-                </div>
+                <div class="font-weight-bold">{{ borrow.readerName }}</div>
                 <div class="text-caption text-grey-darken-1">
-                  ID: {{ shortId(borrow.readerId) }}
+                  PM: {{ shortId(borrow.id) }} · {{ getReaderCode(borrow) }}
                 </div>
               </td>
 
-              <td>{{ borrow.readerName }}</td>
+              <td>
+                <div class="font-weight-bold">{{ borrow.bookTitle }}</div>
+                <div class="text-caption text-grey-darken-1">{{ getBookCode(borrow) }}</div>
+              </td>
 
               <td>
-                <div class="font-weight-bold">
-                  {{ getBookCode(borrow) }}
-                </div>
+                <div class="text-caption">Mượn: {{ formatDate(borrow.borrowDate) }}</div>
+                <div class="text-caption">Hạn: {{ formatDate(borrow.dueDate) }}</div>
                 <div class="text-caption text-grey-darken-1">
-                  ID: {{ shortId(borrow.bookId) }}
+                  Trả: {{ borrow.returnDate ? formatDate(borrow.returnDate) : '-' }}
                 </div>
               </td>
-
-              <td>
-                <div class="font-weight-bold">
-                  {{ borrow.bookTitle }}
-                </div>
-              </td>
-
-              <td>{{ formatDate(borrow.borrowDate) }}</td>
-              <td>{{ formatDate(borrow.dueDate) }}</td>
-              <td>{{ borrow.returnDate ? formatDate(borrow.returnDate) : '-' }}</td>
 
               <td>
                 <v-chip
@@ -261,13 +239,14 @@
                 <span :class="Number(borrow.fineAmount || 0) > 0 ? 'text-error font-weight-bold' : ''">
                   {{ formatMoney(borrow.fineAmount) }}
                 </span>
-              </td>
 
-              <td>
                 <v-chip
+                  v-if="Number(borrow.fineAmount || 0) > 0"
                   :color="getPaymentColor(borrow)"
-                  size="small"
+                  size="x-small"
                   variant="tonal"
+                  class="mt-1 d-block"
+                  style="width: fit-content;"
                 >
                   {{ getPaymentText(borrow) }}
                 </v-chip>
@@ -322,7 +301,7 @@
             </tr>
 
             <tr v-if="paginatedBorrows.length === 0">
-              <td colspan="12" class="text-center pa-8">
+              <td colspan="6" class="text-center pa-8">
                 <v-icon icon="mdi-database-search-outline" size="46" color="grey" />
                 <div class="text-subtitle-1 font-weight-bold mt-2">
                   Không tìm thấy phiếu mượn phù hợp

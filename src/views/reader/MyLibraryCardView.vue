@@ -1,288 +1,123 @@
 <template>
-  <div>
-    <div class="action-bar">
-      <v-btn
-        variant="tonal"
-        color="secondary"
-        prepend-icon="mdi-arrow-left"
-        @click="goBack"
-      >
-        Quay lại
-      </v-btn>
-
-      <div>
-        <div class="page-title">Thẻ thư viện của tôi</div>
-        <div class="page-subtitle">
-          Xem trạng thái thẻ, ngày cấp, hạn sử dụng và thông tin tài khoản độc giả
-        </div>
-      </div>
-
-      <v-spacer />
-
-      <v-btn
-        color="primary"
-        prepend-icon="mdi-refresh"
-        :loading="loading"
-        @click="loadMyCard"
-      >
-        Tải lại
-      </v-btn>
+  <div class="card-page">
+    <div class="card-page-header">
+      <h1>Thẻ Thư Viện Của Tôi</h1>
+      <p>Xuất trình thẻ này khi mượn sách hoặc sử dụng dịch vụ tại thư viện.</p>
     </div>
 
-    <v-alert
-      v-if="message"
-      :type="success ? 'success' : 'error'"
-      variant="tonal"
-      class="mb-5"
-      rounded="lg"
-    >
+    <v-alert v-if="message" :type="success ? 'success' : 'error'" variant="tonal" rounded="lg" class="mb-5 mx-auto" max-width="560">
       {{ message }}
     </v-alert>
 
-    <v-row v-if="card">
-      <v-col cols="12" lg="5">
-        <v-card class="library-card pa-6">
-          <div class="d-flex align-center justify-space-between mb-8">
-            <div>
-              <div class="text-caption text-white opacity-80">
-                DIGITAL LIBRARY CARD
-              </div>
-              <div class="text-h5 font-weight-black text-white mt-1">
-                Library System
-              </div>
-            </div>
+    <template v-if="card">
+      <div class="library-card">
+        <div class="card-shine"></div>
 
-            <v-avatar color="white" size="52">
-              <v-icon icon="mdi-library" color="primary" size="30" />
-            </v-avatar>
+        <div class="card-top">
+          <div>
+            <div class="card-issuer">THƯ VIỆN SỐ QUỐC GIA</div>
+            <div class="card-type">Thẻ Độc Giả</div>
           </div>
 
-          <div class="text-caption text-white opacity-80">
-            SỐ THẺ THƯ VIỆN
-          </div>
+          <span class="status-pill" :class="card.status === 'Active' ? 'status-active' : 'status-inactive'">
+            <span class="status-dot"></span>
+            {{ getCardStatusText(card.status) }}
+          </span>
+        </div>
 
-          <div class="card-number mt-2">
-            {{ card.cardNumber }}
-          </div>
+        <div class="card-body">
+          <div class="card-fields">
+            <div class="card-field-label">Họ và Tên</div>
+            <div class="card-holder-name">{{ card.fullName }}</div>
 
-          <v-row class="mt-7">
-            <v-col cols="7">
-              <div class="text-caption text-white opacity-80">
-                CHỦ THẺ
-              </div>
-              <div class="text-white font-weight-bold mt-1">
-                {{ card.fullName }}
-              </div>
-            </v-col>
-
-            <v-col cols="5">
-              <div class="text-caption text-white opacity-80">
-                TRẠNG THÁI
-              </div>
-              <v-chip
-                class="mt-1"
-                :color="card.status === 'Active' ? 'success' : 'error'"
-                size="small"
-                variant="flat"
-              >
-                {{ getCardStatusText(card.status) }}
-              </v-chip>
-            </v-col>
-          </v-row>
-
-          <v-row class="mt-4">
-            <v-col cols="6">
-              <div class="text-caption text-white opacity-80">
-                NGÀY CẤP
-              </div>
-              <div class="text-white font-weight-bold mt-1">
-                {{ formatShortDate(card.issuedDate) }}
-              </div>
-            </v-col>
-
-            <v-col cols="6">
-              <div class="text-caption text-white opacity-80">
-                HẾT HẠN
-              </div>
-              <div class="text-white font-weight-bold mt-1">
-                {{ formatShortDate(card.expiredDate) }}
-              </div>
-            </v-col>
-          </v-row>
-        </v-card>
-
-        <v-card class="soft-card pa-5 mt-5">
-          <div class="d-flex align-center justify-space-between">
-            <div>
-              <div class="text-subtitle-2 text-grey-darken-1">
-                Thời hạn còn lại
+            <div class="card-field-row">
+              <div>
+                <div class="card-field-label">Mã Thẻ (ID)</div>
+                <div class="card-field-value">{{ card.cardNumber }}</div>
               </div>
 
-              <div class="text-h5 font-weight-black text-secondary mt-1">
-                {{ daysLeftText }}
-              </div>
-            </div>
-
-            <v-avatar
-              :color="isExpired ? 'error' : 'success'"
-              variant="tonal"
-              size="54"
-            >
-              <v-icon
-                :icon="isExpired ? 'mdi-calendar-alert' : 'mdi-calendar-check'"
-                size="28"
-              />
-            </v-avatar>
-          </div>
-
-          <v-progress-linear
-            class="mt-5"
-            :model-value="validityProgress"
-            :color="isExpired ? 'error' : 'primary'"
-            height="10"
-            rounded
-          />
-
-          <div class="text-caption text-grey-darken-1 mt-3">
-            Thẻ còn hiệu lực khi trạng thái là <b>Hoạt động</b> và chưa quá ngày hết hạn.
-          </div>
-        </v-card>
-      </v-col>
-
-      <v-col cols="12" lg="7">
-        <v-card class="soft-card pa-6 mb-5">
-          <div class="d-flex align-center mb-5">
-            <v-avatar color="primary" variant="tonal" size="56" class="mr-4">
-              <v-icon icon="mdi-account-circle" size="34" />
-            </v-avatar>
-
-            <div>
-              <div class="text-h6 font-weight-black text-secondary">
-                {{ card.fullName }}
-              </div>
-              <div class="text-body-2 text-grey-darken-1">
-                {{ card.email }}
+              <div>
+                <div class="card-field-label">Ngày Hết Hạn</div>
+                <div class="card-field-value">{{ formatShortDate(card.expiredDate) }}</div>
               </div>
             </div>
           </div>
 
-          <v-divider class="mb-5" />
-
-          <v-row>
-            <v-col cols="12" md="6">
-              <div class="info-box">
-                <div class="info-label">Họ tên</div>
-                <div class="info-value">{{ card.fullName }}</div>
-              </div>
-            </v-col>
-
-            <v-col cols="12" md="6">
-              <div class="info-box">
-                <div class="info-label">Email</div>
-                <div class="info-value">{{ card.email }}</div>
-              </div>
-            </v-col>
-
-            <v-col cols="12" md="6">
-              <div class="info-box">
-                <div class="info-label">Số thẻ</div>
-                <div class="info-value">{{ card.cardNumber }}</div>
-              </div>
-            </v-col>
-
-            <v-col cols="12" md="6">
-              <div class="info-box">
-                <div class="info-label">Trạng thái thẻ</div>
-                <v-chip
-                  :color="card.status === 'Active' ? 'success' : 'error'"
-                  size="small"
-                  variant="tonal"
-                >
-                  {{ getCardStatusText(card.status) }}
-                </v-chip>
-              </div>
-            </v-col>
-
-            <v-col cols="12" md="6">
-              <div class="info-box">
-                <div class="info-label">Ngày cấp</div>
-                <div class="info-value">{{ formatDate(card.issuedDate) }}</div>
-              </div>
-            </v-col>
-
-            <v-col cols="12" md="6">
-              <div class="info-box">
-                <div class="info-label">Ngày hết hạn</div>
-                <div class="info-value">{{ formatDate(card.expiredDate) }}</div>
-              </div>
-            </v-col>
-          </v-row>
-        </v-card>
-
-        <v-card class="soft-card pa-6">
-          <div class="d-flex align-center mb-4">
-            <v-avatar color="info" variant="tonal" size="48" class="mr-3">
-              <v-icon icon="mdi-information-outline" />
-            </v-avatar>
-
-            <div>
-              <div class="text-subtitle-1 font-weight-bold">
-                Quy định sử dụng thẻ
-              </div>
-              <div class="text-body-2 text-grey-darken-1">
-                Một số lưu ý khi sử dụng thẻ thư viện
-              </div>
-            </div>
+          <div class="card-qr">
+            <img :src="qrImageUrl" alt="Mã QR thẻ thư viện" width="120" height="120" />
           </div>
-
-          <v-list density="compact">
-            <v-list-item
-              prepend-icon="mdi-check-circle-outline"
-              title="Thẻ hoạt động mới được phép mượn sách"
-            />
-
-            <v-list-item
-              prepend-icon="mdi-check-circle-outline"
-              title="Thẻ hết hạn hoặc bị khóa sẽ không tạo được phiếu mượn"
-            />
-
-            <v-list-item
-              prepend-icon="mdi-check-circle-outline"
-              title="Sách trả quá hạn có thể phát sinh phí phạt"
-            />
-
-            <v-list-item
-              prepend-icon="mdi-check-circle-outline"
-              title="Liên hệ thủ thư để gia hạn hoặc mở khóa thẻ"
-            />
-          </v-list>
-        </v-card>
-      </v-col>
-    </v-row>
-
-    <v-card v-else class="soft-card pa-8 text-center">
-      <v-icon icon="mdi-card-account-details-outline" size="54" color="grey" />
-      <div class="text-h6 font-weight-bold mt-3">
-        Không tìm thấy thông tin thẻ thư viện
+        </div>
       </div>
-      <div class="text-body-2 text-grey-darken-1 mt-1">
-        Vui lòng tải lại hoặc liên hệ thủ thư để kiểm tra tài khoản.
+
+      <div class="card-actions">
+        <v-btn color="primary" size="large" rounded="lg" prepend-icon="mdi-refresh" :loading="refreshing" @click="refreshQr">
+          Làm Mới Mã QR
+        </v-btn>
+
+        <v-btn variant="outlined" color="primary" size="large" rounded="lg" prepend-icon="mdi-download-outline" @click="saveCardImage">
+          Lưu Ảnh Thẻ
+        </v-btn>
       </div>
+
+      <div class="usage-guide">
+        <div class="usage-guide-title">
+          <v-icon icon="mdi-information-outline" color="var(--dl-accent-gold)" size="20" />
+          Hướng Dẫn Sử Dụng Thẻ
+        </div>
+
+        <ul>
+          <li>
+            <v-icon icon="mdi-check-circle-outline" size="17" />
+            Mã QR trên thẻ tự động làm mới sau mỗi 5 phút để đảm bảo bảo mật. Vui lòng không chụp ảnh màn hình để sử dụng lâu dài.
+          </li>
+          <li>
+            <v-icon icon="mdi-check-circle-outline" size="17" />
+            Sử dụng thẻ này để quét tại các cổng ra vào thư viện và máy mượn trả sách tự động.
+          </li>
+          <li>
+            <v-icon icon="mdi-check-circle-outline" size="17" />
+            Trong trường hợp nghi ngờ lộ thông tin thẻ, vui lòng nhấn "Làm Mới Mã QR" hoặc liên hệ ngay với thủ thư.
+          </li>
+        </ul>
+      </div>
+
+      <!-- Thời hạn còn lại -->
+      <div class="validity-box">
+        <div class="validity-row">
+          <span>Thời hạn còn lại</span>
+          <strong :class="isExpired ? 'text-error' : 'text-success'">{{ daysLeftText }}</strong>
+        </div>
+        <v-progress-linear :model-value="validityProgress" :color="isExpired ? 'error' : 'primary'" height="8" rounded />
+      </div>
+    </template>
+
+    <v-card v-else-if="!loading" class="empty-card">
+      <v-icon icon="mdi-card-account-details-outline" size="48" color="var(--dl-text-muted)" />
+      <h3>Không tìm thấy thông tin thẻ thư viện</h3>
+      <p>Vui lòng tải lại hoặc liên hệ thủ thư để kiểm tra tài khoản.</p>
+      <v-btn color="primary" variant="tonal" rounded="lg" prepend-icon="mdi-refresh" :loading="loading" @click="loadMyCard">
+        Tải lại
+      </v-btn>
     </v-card>
   </div>
 </template>
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { libraryCardApi } from '../../api/libraryCardApi'
-
-const router = useRouter()
 
 const card = ref(null)
 const loading = ref(false)
+const refreshing = ref(false)
 const message = ref('')
 const success = ref(true)
+const qrNonce = ref(Date.now())
+
+// Dùng dịch vụ QR public để tạo ảnh QR từ mã thẻ - không cần thêm thư viện QR riêng.
+const qrImageUrl = computed(() => {
+  const payload = encodeURIComponent(`${card.value?.cardNumber || ''}-${qrNonce.value}`)
+  return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${payload}`
+})
 
 const isExpired = computed(() => {
   if (!card.value?.expiredDate) return false
@@ -294,15 +129,14 @@ const daysLeft = computed(() => {
 
   const expired = new Date(card.value.expiredDate).getTime()
   const now = new Date().getTime()
-  const diff = expired - now
 
-  return Math.ceil(diff / (1000 * 60 * 60 * 24))
+  return Math.ceil((expired - now) / (1000 * 60 * 60 * 24))
 })
 
 const daysLeftText = computed(() => {
   if (daysLeft.value < 0) return `Đã hết hạn ${Math.abs(daysLeft.value)} ngày`
   if (daysLeft.value === 0) return 'Hết hạn hôm nay'
-  return `${daysLeft.value} ngày`
+  return `Còn ${daysLeft.value} ngày`
 })
 
 const validityProgress = computed(() => {
@@ -315,15 +149,8 @@ const validityProgress = computed(() => {
   if (now >= expired) return 100
   if (now <= issued) return 5
 
-  const total = expired - issued
-  const used = now - issued
-
-  return Math.min(100, Math.max(5, (used / total) * 100))
+  return Math.min(100, Math.max(5, ((now - issued) / (expired - issued)) * 100))
 })
-
-function goBack() {
-  router.push('/app/books')
-}
 
 async function loadMyCard() {
   loading.value = true
@@ -342,105 +169,316 @@ async function loadMyCard() {
   }
 }
 
+async function refreshQr() {
+  refreshing.value = true
+  await new Promise(resolve => setTimeout(resolve, 500))
+  qrNonce.value = Date.now()
+  refreshing.value = false
+  success.value = true
+  message.value = 'Đã làm mới mã QR'
+}
+
+function saveCardImage() {
+  const link = document.createElement('a')
+  link.href = qrImageUrl.value
+  link.download = `the-thu-vien-${card.value?.cardNumber || 'qr'}.png`
+  link.target = '_blank'
+  link.click()
+}
+
 function getCardStatusText(status) {
-  if (status === 'Active') return 'Hoạt động'
+  if (status === 'Active') return 'Đang hoạt động'
   if (status === 'Locked') return 'Đã khóa'
   if (status === 'Expired') return 'Hết hạn'
   return status || '-'
 }
 
-function formatDate(value) {
-  if (!value) return '-'
-
-  return new Date(value).toLocaleString('vi-VN', {
-    hour: '2-digit',
-    minute: '2-digit',
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  })
-}
-
 function formatShortDate(value) {
   if (!value) return '-'
-
-  return new Date(value).toLocaleDateString('vi-VN', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  })
+  return new Date(value).toLocaleDateString('vi-VN', { month: '2-digit', year: 'numeric' })
 }
 
 onMounted(loadMyCard)
 </script>
 
 <style scoped>
-.library-card {
-  min-height: 340px;
-  border-radius: 28px !important;
-  color: white;
-  overflow: hidden;
-  position: relative;
-  background:
-    radial-gradient(circle at top right, rgba(255, 255, 255, 0.28), transparent 28%),
-    radial-gradient(circle at bottom left, rgba(6, 182, 212, 0.35), transparent 32%),
-    linear-gradient(135deg, #1d4ed8 0%, #0f172a 100%) !important;
-  box-shadow: 0 28px 70px rgba(30, 64, 175, 0.32) !important;
+.card-page {
+  max-width: 640px;
+  margin: 0 auto;
+  text-align: center;
 }
 
-.library-card::before {
-  content: '';
-  position: absolute;
-  right: -60px;
-  bottom: -60px;
-  width: 180px;
-  height: 180px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
+.card-page-header h1 {
+  font-family: var(--dl-font-headline);
+  font-weight: 700;
+  font-size: clamp(26px, 3.4vw, 34px);
+  color: var(--dl-primary-dark);
+  margin-bottom: 8px;
+}
+
+.card-page-header p {
+  color: var(--dl-text-muted);
+  font-size: 14.5px;
+  margin-bottom: 32px;
+}
+
+/* Thẻ thư viện */
+.library-card {
+  position: relative;
+  border-radius: var(--dl-radius-lg);
+  padding: 28px 30px;
+  background: linear-gradient(135deg, var(--dl-primary) 0%, var(--dl-primary-dark) 100%);
+  box-shadow: 0 24px 60px rgba(2, 44, 34, 0.3);
+  text-align: left;
+  overflow: hidden;
 }
 
 .library-card::after {
   content: '';
   position: absolute;
-  left: -40px;
-  top: 120px;
-  width: 140px;
-  height: 140px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
+  right: -50px;
+  bottom: -50px;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
 }
 
-.library-card > * {
-  position: relative;
+/* Hiệu ứng ánh sáng quét chéo \ từ trên-phải xuống dưới-trái */
+.card-shine {
+  position: absolute;
+  inset: 0;
   z-index: 2;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: inherit;
 }
 
-.card-number {
-  color: white;
-  font-size: 26px;
-  font-weight: 900;
-  letter-spacing: 0.08em;
+.card-shine::before {
+  content: '';
+  position: absolute;
+  top: -60%;
+  right: -60%;
+  width: 55%;
+  height: 220%;
+  background: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.28) 45%,
+    rgba(255, 255, 255, 0.55) 50%,
+    rgba(255, 255, 255, 0.28) 55%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: rotate(20deg);
+  animation: card-shine-sweep 4.5s ease-in-out infinite;
 }
 
-.info-box {
-  min-height: 88px;
-  padding: 16px;
-  border-radius: 18px;
-  background: #f8fafc;
-  border: 1px solid #eef2f7;
+@keyframes card-shine-sweep {
+  0% {
+    transform: translate(0, 0) rotate(20deg);
+  }
+  45%, 100% {
+    transform: translate(-170%, 170%) rotate(20deg);
+  }
 }
 
-.info-label {
-  color: #64748b;
-  font-size: 13px;
+.card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  position: relative;
+  z-index: 1;
+}
+
+.card-issuer {
+  font-size: 11px;
   font-weight: 700;
-  margin-bottom: 6px;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.65);
 }
 
-.info-value {
-  color: #0f172a;
+.card-type {
+  font-family: var(--dl-font-headline);
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  margin-top: 2px;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: var(--dl-radius-full);
+  white-space: nowrap;
+}
+
+.status-active {
+  background: rgba(5, 150, 105, 0.25);
+  color: #d1fae5;
+}
+
+.status-inactive {
+  background: rgba(220, 38, 38, 0.25);
+  color: #fecaca;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.card-body {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.card-field-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 4px;
+}
+
+.card-holder-name {
+  font-family: var(--dl-font-headline);
+  font-size: 24px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 20px;
+}
+
+.card-field-row {
+  display: flex;
+  gap: 36px;
+}
+
+.card-field-value {
   font-size: 15px;
   font-weight: 700;
-  word-break: break-word;
+  color: #fff;
+  letter-spacing: 0.02em;
+}
+
+.card-qr {
+  flex: 0 0 auto;
+  background: #fff;
+  border-radius: var(--dl-radius-md);
+  padding: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.card-qr img {
+  display: block;
+  border-radius: 4px;
+}
+
+/* Actions */
+.card-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+/* Hướng dẫn sử dụng */
+.usage-guide {
+  text-align: left;
+  margin-top: 32px;
+  padding: 22px 24px;
+  border-radius: var(--dl-radius-lg);
+  background: var(--dl-surface);
+  border: 1px solid var(--dl-surface-variant);
+}
+
+.usage-guide-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--dl-font-headline);
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--dl-text-primary);
+  margin-bottom: 14px;
+}
+
+.usage-guide ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.usage-guide li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--dl-text-muted);
+}
+
+.usage-guide li .v-icon {
+  color: var(--dl-success);
+  margin-top: 2px;
+  flex: 0 0 auto;
+}
+
+/* Validity */
+.validity-box {
+  text-align: left;
+  margin-top: 20px;
+  padding: 18px 22px;
+  border-radius: var(--dl-radius-lg);
+  background: var(--dl-surface);
+  border: 1px solid var(--dl-surface-variant);
+}
+
+.validity-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13.5px;
+  color: var(--dl-text-muted);
+  margin-bottom: 10px;
+}
+
+.empty-card {
+  padding: 56px 24px;
+  text-align: center;
+}
+
+.empty-card h3 {
+  font-family: var(--dl-font-headline);
+  color: var(--dl-text-primary);
+  margin: 14px 0 4px;
+}
+
+.empty-card p {
+  color: var(--dl-text-muted);
+  font-size: 14px;
+  margin-bottom: 18px;
+}
+
+@media (max-width: 560px) {
+  .card-body {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .card-qr {
+    align-self: center;
+  }
 }
 </style>

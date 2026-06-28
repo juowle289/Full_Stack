@@ -19,7 +19,25 @@
       >
         Tải lại
       </v-btn>
+
+      <v-btn
+        v-if="canManageUser"
+        variant="outlined"
+        color="primary"
+        prepend-icon="mdi-file-excel-outline"
+        @click="importDialog = true"
+      >
+        Nhập Excel
+      </v-btn>
     </div>
+
+    <ImportExcelDialog
+      v-model="importDialog"
+      entity-label="độc giả"
+      :template-columns="readerImportColumns"
+      :create-fn="importReaderRow"
+      @imported="loadReaders"
+    />
 
     <v-alert
       v-if="message"
@@ -76,7 +94,7 @@
     </div>
 
     <v-card class="table-card">
-      <!-- Thanh chọn nhiều - tĩnh trên đầu bảng, giống Stitch (khác kiểu floating bar của trang Sách) -->
+      <!-- Thanh tĩnh trên đầu bảng: chỉ Chọn tất cả + Xuất dữ liệu (không cần chọn dòng nào) -->
       <div class="select-toolbar">
         <label class="select-all-label">
           <v-checkbox-btn
@@ -89,17 +107,6 @@
         </label>
 
         <v-divider vertical class="mx-2" />
-
-        <button
-          class="toolbar-action"
-          :class="{ 'toolbar-action-disabled': !selectedReaderIds.length || !canManageCard }"
-          type="button"
-          :disabled="!selectedReaderIds.length || !canManageCard"
-          @click="confirmBulkLock = true"
-        >
-          <v-icon icon="mdi-card-off-outline" size="18" />
-          Khóa thẻ
-        </button>
 
         <button class="toolbar-action" type="button" @click="exportCsv">
           <v-icon icon="mdi-download-outline" size="18" />
@@ -268,6 +275,34 @@
       </div>
     </v-card>
 
+    <!-- Bulk action bar nổi -->
+    <transition name="dl-fade">
+      <div v-if="selectedReaderIds.length" class="bulk-bar">
+        <div class="bulk-count"><strong>{{ selectedReaderIds.length }}</strong> độc giả đã chọn</div>
+
+        <v-divider vertical class="bulk-divider" />
+
+        <button
+          v-if="canManageCard"
+          class="bulk-btn bulk-btn-danger"
+          type="button"
+          @click="confirmBulkLock = true"
+        >
+          <v-icon icon="mdi-card-off-outline" size="16" />
+          Khóa thẻ
+        </button>
+
+        <button class="bulk-btn bulk-btn-gold" type="button" @click="exportCsv">
+          <v-icon icon="mdi-download-outline" size="16" />
+          Xuất CSV
+        </button>
+
+        <button class="bulk-btn bulk-btn-ghost" type="button" @click="selectedReaderIds = []">
+          Bỏ chọn
+        </button>
+      </div>
+    </transition>
+
     <!-- Confirm khóa thẻ hàng loạt -->
     <v-dialog v-model="confirmBulkLock" max-width="420">
       <v-card rounded="lg" class="pa-2">
@@ -419,9 +454,33 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { readerApi } from '../../api/readerApi'
 import { userApi } from '../../api/userApi'
 import { libraryCardApi } from '../../api/libraryCardApi'
+import { authApi } from '../../api/authApi'
 import { useAuthStore } from '../../stores/authStore'
+import ImportExcelDialog from '../../components/ImportExcelDialog.vue'
 
 const auth = useAuthStore()
+
+const importDialog = ref(false)
+
+const readerImportColumns = [
+  { key: 'fullName', label: 'Họ và tên', required: true },
+  { key: 'email', label: 'Email', required: true },
+  { key: 'password', label: 'Mật khẩu tạm thời', required: true },
+  { key: 'studentCode', label: 'Mã SV/Mã độc giả', required: false },
+  { key: 'phone', label: 'Số điện thoại', required: false },
+  { key: 'address', label: 'Địa chỉ', required: false }
+]
+
+function importReaderRow(row) {
+  return authApi.register({
+    fullName: row.fullName,
+    email: row.email,
+    password: row.password,
+    studentCode: row.studentCode || '',
+    phone: row.phone || '',
+    address: row.address || ''
+  })
+}
 
 const readers = ref([])
 const keyword = ref('')

@@ -70,21 +70,42 @@
           </v-chip>
         </div>
 
-        <div class="bar-chart">
-          <div
-            v-for="bar in chartBars"
-            :key="bar.label"
-            class="bar-item"
-          >
-            <div class="bar-track">
-              <div
-                class="bar-fill"
-                :style="{ height: bar.height + '%' }"
-              ></div>
-            </div>
+        <div class="line-chart">
+          <svg viewBox="0 0 500 200" preserveAspectRatio="none" class="line-svg">
+            <defs>
+              <linearGradient id="lineAreaFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="var(--dl-primary)" stop-opacity="0.28" />
+                <stop offset="100%" stop-color="var(--dl-primary)" stop-opacity="0" />
+              </linearGradient>
+            </defs>
 
-            <div class="bar-label">{{ bar.label }}</div>
-            <div class="bar-value">{{ formatNumber(bar.value) }}</div>
+            <!-- Lưới ngang -->
+            <line v-for="g in 4" :key="g" x1="0" x2="500" :y1="g * 40" :y2="g * 40" class="grid-line" />
+
+            <!-- Vùng tô dưới đường -->
+            <polygon :points="areaPoints" fill="url(#lineAreaFill)" />
+
+            <!-- Đường nối -->
+            <polyline :points="linePoints" fill="none" stroke="var(--dl-primary)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+
+            <!-- Điểm dữ liệu -->
+            <circle
+              v-for="(p, idx) in chartPoints"
+              :key="idx"
+              :cx="p.x"
+              :cy="p.y"
+              r="5"
+              fill="var(--dl-surface)"
+              stroke="var(--dl-primary)"
+              stroke-width="3"
+            />
+          </svg>
+
+          <div class="line-labels">
+            <div v-for="bar in chartBars" :key="bar.label" class="line-label-item">
+              <div class="bar-label">{{ bar.label }}</div>
+              <div class="bar-value">{{ formatNumber(bar.value) }}</div>
+            </div>
           </div>
         </div>
       </v-card>
@@ -485,6 +506,33 @@ const chartBars = computed(() => {
   }))
 })
 
+// Tọa độ SVG cho line chart (viewBox 500x200, chừa lề trên/dưới 16px)
+const chartPoints = computed(() => {
+  const items = chartBars.value
+  const padTop = 16
+  const padBottom = 16
+  const usableHeight = 200 - padTop - padBottom
+
+  return items.map((item, idx) => ({
+    x: items.length > 1 ? (idx / (items.length - 1)) * 500 : 250,
+    y: padTop + (1 - item.height / 100) * usableHeight
+  }))
+})
+
+const linePoints = computed(() =>
+  chartPoints.value.map(p => `${p.x},${p.y}`).join(' ')
+)
+
+const areaPoints = computed(() => {
+  const pts = chartPoints.value
+  if (!pts.length) return ''
+
+  const first = pts[0]
+  const last = pts[pts.length - 1]
+
+  return `${first.x},200 ${linePoints.value} ${last.x},200`
+})
+
 const returnedRate = computed(() => {
   const borrowed = Number(dashboard.value.totalBorrowed || 0)
   const returned = Number(dashboard.value.totalReturned || 0)
@@ -718,44 +766,43 @@ onMounted(loadDashboard)
   font-size: 14px;
 }
 
-.bar-chart {
+.line-chart {
   height: 280px;
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 18px;
+  flex-direction: column;
   padding: 22px;
   border-radius: 22px;
-  background: linear-gradient(135deg, #f8f9ff 0%, #e5eeff 100%);
+  background: linear-gradient(135deg, var(--dl-surface-container-low) 0%, var(--dl-background) 100%);
 }
 
-.bar-item {
+.line-svg {
+  flex: 1;
+  width: 100%;
   height: 100%;
+  overflow: visible;
+}
+
+.grid-line {
+  stroke: var(--dl-border);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
+
+.line-labels {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.line-label-item {
   flex: 1;
   min-width: 0;
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-}
-
-.bar-track {
-  flex: 1;
-  width: 100%;
-  display: flex;
-  align-items: flex-end;
-}
-
-.bar-fill {
-  width: 100%;
-  min-height: 14px;
-  border-radius: 12px 12px 4px 4px;
-  background: linear-gradient(180deg, var(--dl-accent-gold), var(--dl-primary));
-  transition: height 0.6s ease;
+  text-align: center;
 }
 
 .bar-label {
-  margin-top: 10px;
-  color: #64748b;
+  color: var(--dl-text-muted);
   font-size: 12px;
   font-weight: 900;
   text-align: center;
@@ -763,7 +810,7 @@ onMounted(loadDashboard)
 
 .bar-value {
   margin-top: 2px;
-  color: #0f172a;
+  color: var(--dl-text-primary);
   font-size: 12px;
   font-weight: 1000;
 }
@@ -1094,7 +1141,7 @@ onMounted(loadDashboard)
     padding: 20px;
   }
 
-  .bar-chart {
+  .line-chart {
     gap: 10px;
     padding: 16px;
   }

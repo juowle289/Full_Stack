@@ -18,11 +18,28 @@ const libraryTheme = {
   }
 }
 
+const libraryThemeDark = {
+  dark: true,
+  colors: {
+    background: '#0B1411',
+    surface: '#11201B',
+    primary: '#34D399',
+    'primary-darken-1': '#022C22',
+    secondary: '#F0B66B',
+    accent: '#F59E0B',
+    success: '#34D399',
+    warning: '#F59E0B',
+    error: '#F87171',
+    info: '#38BDF8'
+  }
+}
+
 export default createVuetify({
   theme: {
     defaultTheme: 'libraryTheme',
     themes: {
-      libraryTheme
+      libraryTheme,
+      libraryThemeDark
     }
   },
   defaults: {

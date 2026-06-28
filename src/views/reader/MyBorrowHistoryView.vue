@@ -1,15 +1,6 @@
 <template>
   <div>
     <div class="action-bar">
-      <v-btn
-        variant="tonal"
-        color="secondary"
-        prepend-icon="mdi-arrow-left"
-        @click="goBack"
-      >
-        Quay lại
-      </v-btn>
-
       <div>
         <div class="page-title">Lịch sử mượn của tôi</div>
         <div class="page-subtitle">
@@ -138,13 +129,9 @@
         <thead>
           <tr>
             <th>Sách</th>
-            <th>Ngày mượn</th>
-            <th>Hạn trả</th>
-            <th>Ngày trả</th>
+            <th>Mượn / Trả</th>
             <th>Trạng thái</th>
-            <th>Quá hạn</th>
-            <th>Tiền phạt</th>
-            <th>Trạng thái phạt</th>
+            <th>Phí phạt</th>
           </tr>
         </thead>
 
@@ -167,31 +154,25 @@
               </div>
             </td>
 
-            <td>{{ formatDate(item.borrowDate) }}</td>
-            <td>{{ formatDate(item.dueDate) }}</td>
-            <td>{{ item.returnDate ? formatDate(item.returnDate) : '-' }}</td>
+            <td>
+              <div class="text-caption">Mượn: {{ formatDate(item.borrowDate) }}</div>
+              <div class="text-caption">Hạn: {{ formatDate(item.dueDate) }}</div>
+              <div class="text-caption text-grey-darken-1">
+                Trả: {{ item.returnDate ? formatDate(item.returnDate) : '-' }}
+              </div>
+            </td>
 
             <td>
               <v-chip
-                :color="item.status === 'Borrowed' ? 'warning' : 'success'"
+                :color="isItemOverdue(item) ? 'error' : (item.status === 'Borrowed' ? 'warning' : 'success')"
                 size="small"
                 variant="tonal"
               >
                 <v-icon
                   start
-                  :icon="item.status === 'Borrowed' ? 'mdi-book-clock' : 'mdi-check-circle'"
+                  :icon="isItemOverdue(item) ? 'mdi-alert-circle' : (item.status === 'Borrowed' ? 'mdi-book-clock' : 'mdi-check-circle')"
                 />
-                {{ getBorrowStatusText(item.status) }}
-              </v-chip>
-            </td>
-
-            <td>
-              <v-chip
-                :color="isItemOverdue(item) ? 'error' : 'success'"
-                size="small"
-                variant="tonal"
-              >
-                {{ isItemOverdue(item) ? 'Quá hạn' : 'Không' }}
+                {{ isItemOverdue(item) ? 'Quá hạn' : getBorrowStatusText(item.status) }}
               </v-chip>
             </td>
 
@@ -199,13 +180,14 @@
               <span :class="Number(item.fineAmount || 0) > 0 ? 'text-error font-weight-bold' : ''">
                 {{ formatMoney(item.fineAmount) }}
               </span>
-            </td>
 
-            <td>
               <v-chip
+                v-if="Number(item.fineAmount || 0) > 0"
                 :color="getFineStatusColor(item)"
-                size="small"
+                size="x-small"
                 variant="tonal"
+                class="mt-1 d-block"
+                style="width: fit-content;"
               >
                 {{ getFineStatusText(item) }}
               </v-chip>
@@ -213,7 +195,7 @@
           </tr>
 
           <tr v-if="filteredBorrows.length === 0">
-            <td colspan="8" class="text-center pa-8">
+            <td colspan="4" class="text-center pa-8">
               <v-icon icon="mdi-database-search-outline" size="42" color="grey" />
               <div class="text-subtitle-1 font-weight-bold mt-2">
                 Không có dữ liệu phù hợp
@@ -231,10 +213,7 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { borrowApi } from '../../api/borrowApi'
-
-const router = useRouter()
 
 const borrows = ref([])
 const keyword = ref('')
@@ -276,10 +255,6 @@ const filteredBorrows = computed(() => {
 
   return data
 })
-
-function goBack() {
-  router.push('/app/books')
-}
 
 async function loadMyBorrows() {
   loading.value = true

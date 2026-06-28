@@ -16,5 +16,10 @@ export const authApi = {
   // ⚠️ Giả định endpoint - cần xác nhận với backend trước khi dùng thật.
   changePassword(data) {
     return api.put('/api/identity/auth/change-password', data)
+  },
+
+  // ⚠️ Giả định endpoint - cần xác nhận với backend trước khi dùng thật.
+  updateProfile(data) {
+    return api.put('/api/identity/auth/me', data)
   }
 }

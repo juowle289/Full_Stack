@@ -20,6 +20,16 @@
 
       <v-btn
         v-if="canManageBook"
+        variant="outlined"
+        color="primary"
+        prepend-icon="mdi-file-excel-outline"
+        @click="importDialog = true"
+      >
+        Nhập Excel
+      </v-btn>
+
+      <v-btn
+        v-if="canManageBook"
         color="primary"
         prepend-icon="mdi-plus"
         @click="openCreateDialog"
@@ -27,6 +37,14 @@
         Thêm sách
       </v-btn>
     </div>
+
+    <ImportExcelDialog
+      v-model="importDialog"
+      entity-label="sách"
+      :template-columns="bookImportColumns"
+      :create-fn="importBookRow"
+      @imported="loadBooks"
+    />
 
     <v-alert
       v-if="message"
@@ -448,8 +466,21 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { bookApi } from '../../api/bookApi'
 import { borrowApi } from '../../api/borrowApi'
 import { useAuthStore } from '../../stores/authStore'
+import ImportExcelDialog from '../../components/ImportExcelDialog.vue'
 
 const auth = useAuthStore()
+
+const importDialog = ref(false)
+
+const bookImportColumns = [
+  { key: 'title', label: 'Tựa sách', required: true },
+  { key: 'author', label: 'Tác giả', required: true },
+  { key: 'isbn', label: 'ISBN', required: false },
+  { key: 'category', label: 'Thể loại', required: false },
+  { key: 'publisher', label: 'Nhà xuất bản', required: false },
+  { key: 'publishingYear', label: 'Năm XB', required: false },
+  { key: 'totalCopies', label: 'Số lượng', required: true }
+]
 
 const books = ref([])
 const selectedBookIds = ref([])
@@ -500,6 +531,19 @@ const copyTabs = [
   { label: 'Đang có sẵn', value: 'available' },
   { label: 'Đang mượn', value: 'borrowed' }
 ]
+
+function importBookRow(row) {
+  return bookApi.create({
+    title: row.title,
+    author: row.author,
+    isbn: row.isbn || '',
+    category: row.category || '',
+    publisher: row.publisher || '',
+    publishingYear: Number(row.publishingYear) || null,
+    totalCopies: Number(row.totalCopies) || 1,
+    availableCopies: Number(row.totalCopies) || 1
+  })
+}
 
 const canManageBook = computed(() => ['Admin', 'Librarian'].includes(auth.role))
 

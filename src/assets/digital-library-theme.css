@@ -100,3 +100,38 @@
 .dl-soft-shadow {
   box-shadow: var(--dl-shadow-soft);
 }
+
+/* ============ DARK MODE ============ */
+/* Áp class .theme-dark lên <html> khi bật tối - override toàn bộ design token */
+.theme-dark {
+  --dl-primary: #34d399;
+  --dl-primary-dark: #0b1411;
+  --dl-secondary: #f0b66b;
+  --dl-accent-gold: #f59e0b;
+
+  --dl-background: #0b1411;
+  --dl-background-paper: #0b1411;
+  --dl-surface: #11201b;
+  --dl-surface-paper: #15251f;
+  --dl-surface-container-low: #182a23;
+  --dl-surface-variant: #243832;
+  --dl-border: #243832;
+  --dl-outline: #4b5d56;
+  --dl-outline-variant: #2f4640;
+
+  --dl-text-primary: #ecfdf5;
+  --dl-text-muted: #9cb3ac;
+  --dl-on-surface-variant: #c3d4cd;
+
+  --dl-success: #34d399;
+  --dl-warning: #f59e0b;
+  --dl-error: #f87171;
+
+  --dl-shadow-soft: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  --dl-shadow-card: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.theme-dark body {
+  background: var(--dl-background);
+  color: var(--dl-text-primary);
+}

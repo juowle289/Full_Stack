@@ -20,10 +20,27 @@
         Tải lại
       </v-btn>
 
+      <v-btn
+        variant="outlined"
+        color="primary"
+        prepend-icon="mdi-file-excel-outline"
+        @click="importDialog = true"
+      >
+        Nhập Excel
+      </v-btn>
+
       <v-btn color="primary" prepend-icon="mdi-account-plus-outline" @click="openCreateDialog">
         Tạo tài khoản mới
       </v-btn>
     </div>
+
+    <ImportExcelDialog
+      v-model="importDialog"
+      entity-label="tài khoản"
+      :template-columns="accountImportColumns"
+      :create-fn="importAccountRow"
+      @imported="loadAccounts"
+    />
 
     <v-alert
       v-if="message"
@@ -106,6 +123,14 @@
       <v-table>
         <thead>
           <tr>
+            <th style="width: 44px;">
+              <v-checkbox-btn
+                :model-value="allAccountsSelected"
+                :indeterminate="isAccountsIndeterminate"
+                color="primary"
+                @update:model-value="toggleSelectAllAccounts"
+              />
+            </th>
             <th>Họ tên</th>
             <th>Email</th>
             <th>Vai trò</th>
@@ -117,6 +142,9 @@
 
         <tbody>
           <tr v-for="acc in filteredAccounts" :key="acc.userId || acc.id">
+            <td>
+              <v-checkbox-btn v-model="selectedAccountIds" :value="acc.userId" color="primary" />
+            </td>
             <td class="font-weight-bold">{{ acc.fullName }}</td>
             <td>{{ acc.email }}</td>
             <td>
@@ -153,13 +181,47 @@
           </tr>
 
           <tr v-if="!loading && !filteredAccounts.length">
-            <td colspan="6" class="text-center pa-6 text-medium-emphasis">
+            <td colspan="7" class="text-center pa-6 text-medium-emphasis">
               Không có tài khoản phù hợp
             </td>
           </tr>
         </tbody>
       </v-table>
     </v-card>
+
+    <!-- Bulk action bar nổi -->
+    <transition name="dl-fade">
+      <div v-if="selectedAccountIds.length" class="bulk-bar">
+        <div class="bulk-count"><strong>{{ selectedAccountIds.length }}</strong> tài khoản đã chọn</div>
+
+        <v-divider vertical class="bulk-divider" />
+
+        <button class="bulk-btn bulk-btn-danger" type="button" @click="confirmBulkLock = true">
+          <v-icon icon="mdi-lock-outline" size="16" />
+          Khóa
+        </button>
+
+        <button class="bulk-btn bulk-btn-ghost" type="button" @click="selectedAccountIds = []">
+          Bỏ chọn
+        </button>
+      </div>
+    </transition>
+
+    <!-- Confirm khóa hàng loạt -->
+    <v-dialog v-model="confirmBulkLock" max-width="420">
+      <v-card rounded="lg" class="pa-2">
+        <v-card-title class="dialog-title">Xác nhận khóa tài khoản</v-card-title>
+        <v-card-text>
+          Khóa <strong>{{ selectedAccountIds.length }}</strong> tài khoản đã chọn? Họ sẽ không thể
+          đăng nhập cho đến khi được mở khóa lại.
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="confirmBulkLock = false">Hủy</v-btn>
+          <v-btn color="error" :loading="bulkActing" @click="bulkLockAccounts">Khóa tài khoản</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <!-- Dialog tạo tài khoản -->
     <v-dialog v-model="createDialog" max-width="480">
@@ -227,9 +289,32 @@
 import { computed, onMounted, ref } from 'vue'
 import { userApi } from '../../api/userApi'
 import { readerApi } from '../../api/readerApi'
+import ImportExcelDialog from '../../components/ImportExcelDialog.vue'
 
 const accounts = ref([])
 const loading = ref(false)
+
+const selectedAccountIds = ref([])
+const confirmBulkLock = ref(false)
+const bulkActing = ref(false)
+
+const importDialog = ref(false)
+
+const accountImportColumns = [
+  { key: 'fullName', label: 'Họ và tên', required: true },
+  { key: 'email', label: 'Email', required: true },
+  { key: 'password', label: 'Mật khẩu tạm thời', required: true },
+  { key: 'role', label: 'Vai trò (Librarian/Reader)', required: true }
+]
+
+function importAccountRow(row) {
+  return userApi.create({
+    fullName: row.fullName,
+    email: row.email,
+    password: row.password,
+    role: row.role === 'Librarian' ? 'Librarian' : 'Reader'
+  })
+}
 const message = ref('')
 const success = ref(true)
 
@@ -244,6 +329,48 @@ const acting = ref(false)
 const targetAccount = ref(null)
 
 const newAccount = ref({ fullName: '', email: '', password: '', role: 'Librarian' })
+
+const allAccountsSelected = computed(() =>
+  filteredAccounts.value.length > 0 &&
+  filteredAccounts.value.every(a => selectedAccountIds.value.includes(a.userId))
+)
+
+const isAccountsIndeterminate = computed(() =>
+  !allAccountsSelected.value && filteredAccounts.value.some(a => selectedAccountIds.value.includes(a.userId))
+)
+
+function toggleSelectAllAccounts(value) {
+  const ids = filteredAccounts.value.map(a => a.userId)
+
+  if (value) {
+    selectedAccountIds.value = [...new Set([...selectedAccountIds.value, ...ids])]
+  } else {
+    selectedAccountIds.value = selectedAccountIds.value.filter(id => !ids.includes(id))
+  }
+}
+
+async function bulkLockAccounts() {
+  bulkActing.value = true
+
+  try {
+    for (const id of selectedAccountIds.value) {
+      await userApi.lockUser(id)
+    }
+
+    success.value = true
+    message.value = `Đã khóa ${selectedAccountIds.value.length} tài khoản`
+    selectedAccountIds.value = []
+    confirmBulkLock.value = false
+
+    await loadAccounts()
+  } catch (err) {
+    success.value = false
+    message.value = err.response?.data?.message || 'Khóa tài khoản hàng loạt thất bại'
+    console.error(err.response || err)
+  } finally {
+    bulkActing.value = false
+  }
+}
 
 const filteredAccounts = computed(() => {
   return accounts.value.filter(acc => {

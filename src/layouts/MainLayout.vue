@@ -29,35 +29,23 @@
         </v-btn>
       </div>
 
-      <v-list nav density="comfortable" class="drawer-menu">
-        <v-list-item
-          v-for="item in navItems"
-          :key="item.to"
-          :title="item.title"
-          :prepend-icon="item.icon"
-          :to="item.to"
-          rounded="lg"
-        />
-      </v-list>
+      <!-- Sidebar chia khối theo nhóm: mỗi khối có tiêu đề nhỏ + danh sách item riêng -->
+      <div v-for="group in navGroups" :key="group.title" class="drawer-group">
+        <div class="drawer-group-title">{{ group.title }}</div>
 
-      <template #append>
-        <v-list nav density="comfortable" class="drawer-menu drawer-menu-footer">
+        <v-list nav density="comfortable" class="drawer-menu">
           <v-list-item
-            title="Hồ sơ cá nhân"
-            prepend-icon="mdi-account-circle-outline"
-            to="/app/profile"
+            v-for="item in group.items"
+            :key="item.title"
+            :title="item.title"
+            :prepend-icon="item.icon"
+            :to="item.action ? undefined : item.to"
             rounded="lg"
-          />
-
-          <v-list-item
-            title="Đăng xuất"
-            prepend-icon="mdi-logout"
-            rounded="lg"
-            class="logout-item"
-            @click="logout"
+            :class="{ 'logout-item': item.action === 'logout' }"
+            @click="item.action === 'logout' ? logout() : null"
           />
         </v-list>
-      </template>
+      </div>
     </v-navigation-drawer>
 
     <v-app-bar flat height="72" class="dl-topbar">
@@ -88,13 +76,7 @@
           </template>
         </v-tooltip>
 
-        <v-tooltip text="Trợ giúp">
-          <template #activator="{ props }">
-            <v-btn v-bind="props" icon="mdi-help-circle-outline" variant="text" />
-          </template>
-        </v-tooltip>
-
-        <router-link to="/app/profile" class="topbar-user d-none d-md-flex">
+        <router-link to="/app/account-settings" class="topbar-user d-none d-md-flex">
           <div class="text-right">
             <div class="topbar-user-name">{{ auth.fullName || 'Người dùng' }}</div>
             <span class="role-badge" :class="roleBadgeClass">{{ displayRole }}</span>
@@ -157,39 +139,81 @@ const roleBadgeClass = computed(() => {
   return ''
 })
 
-// Menu item theo từng vai trò - CHỈ MỘT sidebar duy nhất, nội dung đổi theo role
-const navItems = computed(() => {
+// Sidebar duy nhất, chia khối theo nhóm - nội dung từng khối đổi theo vai trò
+const navGroups = computed(() => {
+  const supportGroup = {
+    title: 'Hỗ trợ',
+    items: [
+      { title: 'Cài đặt', icon: 'mdi-account-cog-outline', to: '/app/account-settings' },
+      { title: 'Trợ giúp', icon: 'mdi-help-circle-outline', to: '/app/help' },
+      { title: 'Đăng xuất', icon: 'mdi-logout', action: 'logout' }
+    ]
+  }
+
   if (auth.role === 'Admin') {
     return [
-      { title: 'Tổng quan', icon: 'mdi-view-dashboard-outline', to: '/app/dashboard' },
-      { title: 'Quản lý sách', icon: 'mdi-book-open-page-variant-outline', to: '/app/books' },
-      { title: 'Quản lý độc giả', icon: 'mdi-account-group-outline', to: '/app/readers' },
-      { title: 'Quản lý tài khoản', icon: 'mdi-account-key-outline', to: '/app/accounts' },
-      { title: 'Phiếu mượn/trả', icon: 'mdi-clipboard-text-outline', to: '/app/borrows' },
-      { title: 'Sách quá hạn', icon: 'mdi-alert-circle-outline', to: '/app/overdue' },
-      { title: 'Công nợ phí phạt', icon: 'mdi-cash-multiple', to: '/app/fines' },
-      { title: 'Báo cáo & thống kê', icon: 'mdi-chart-bar', to: '/app/reports' },
-      { title: 'Cấu hình hệ thống', icon: 'mdi-cog-outline', to: '/app/settings' }
+      {
+        title: 'Tổng quan',
+        items: [
+          { title: 'Tổng quan', icon: 'mdi-view-dashboard-outline', to: '/app/dashboard' }
+        ]
+      },
+      {
+        title: 'Quản lý',
+        items: [
+          { title: 'Quản lý sách', icon: 'mdi-book-open-page-variant-outline', to: '/app/books' },
+          { title: 'Quản lý độc giả', icon: 'mdi-account-group-outline', to: '/app/readers' },
+          { title: 'Quản lý tài khoản', icon: 'mdi-account-key-outline', to: '/app/accounts' },
+          { title: 'Phiếu mượn/trả', icon: 'mdi-clipboard-text-outline', to: '/app/borrows' },
+          { title: 'Sách quá hạn', icon: 'mdi-alert-circle-outline', to: '/app/overdue' },
+          { title: 'Công nợ phí phạt', icon: 'mdi-cash-multiple', to: '/app/fines' },
+          { title: 'Báo cáo & thống kê', icon: 'mdi-chart-bar', to: '/app/reports' },
+          { title: 'Cấu hình hệ thống', icon: 'mdi-cog-outline', to: '/app/settings' }
+        ]
+      },
+      supportGroup
     ]
   }
 
   if (auth.role === 'Librarian') {
     return [
-      { title: 'Tổng quan', icon: 'mdi-view-dashboard-outline', to: '/app/dashboard' },
-      { title: 'Quản lý sách', icon: 'mdi-book-open-page-variant-outline', to: '/app/books' },
-      { title: 'Quản lý độc giả', icon: 'mdi-account-group-outline', to: '/app/readers' },
-      { title: 'Quầy lưu thông', icon: 'mdi-swap-horizontal-circle-outline', to: '/app/circulation' },
-      { title: 'Sách quá hạn', icon: 'mdi-alert-circle-outline', to: '/app/overdue' },
-      { title: 'Công nợ phí phạt', icon: 'mdi-cash-multiple', to: '/app/fines' }
+      {
+        title: 'Tổng quan',
+        items: [
+          { title: 'Tổng quan', icon: 'mdi-view-dashboard-outline', to: '/app/dashboard' }
+        ]
+      },
+      {
+        title: 'Quản lý',
+        items: [
+          { title: 'Quản lý sách', icon: 'mdi-book-open-page-variant-outline', to: '/app/books' },
+          { title: 'Quản lý độc giả', icon: 'mdi-account-group-outline', to: '/app/readers' },
+          { title: 'Quầy lưu thông', icon: 'mdi-swap-horizontal-circle-outline', to: '/app/circulation' },
+          { title: 'Sách quá hạn', icon: 'mdi-alert-circle-outline', to: '/app/overdue' },
+          { title: 'Công nợ phí phạt', icon: 'mdi-cash-multiple', to: '/app/fines' }
+        ]
+      },
+      supportGroup
     ]
   }
 
   if (auth.role === 'Reader') {
     return [
-      { title: 'Khám phá sách', icon: 'mdi-compass-outline', to: '/app/browse' },
-      { title: 'Thẻ thư viện của tôi', icon: 'mdi-card-account-details-outline', to: '/app/my-card' },
-      { title: 'Lịch sử mượn sách', icon: 'mdi-history', to: '/app/my-borrows' },
-      { title: 'Công nợ của tôi', icon: 'mdi-cash-multiple', to: '/app/my-fines' }
+      {
+        title: 'Tổng quan',
+        items: [
+          { title: 'Khám phá sách', icon: 'mdi-compass-outline', to: '/app/browse' }
+        ]
+      },
+      {
+        title: 'Của tôi',
+        items: [
+          { title: 'Thẻ thư viện của tôi', icon: 'mdi-card-account-details-outline', to: '/app/my-card' },
+          { title: 'Lịch sử mượn sách', icon: 'mdi-history', to: '/app/my-borrows' },
+          { title: 'Công nợ của tôi', icon: 'mdi-cash-multiple', to: '/app/my-fines' }
+        ]
+      },
+      supportGroup
     ]
   }
 
@@ -266,12 +290,25 @@ function logout() {
   padding: 0 16px 14px;
 }
 
+.drawer-group {
+  margin-bottom: 6px;
+}
+
+.drawer-group-title {
+  padding: 14px 24px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--dl-text-muted);
+}
+
 .drawer-menu {
   padding: 0 12px;
 }
 
 .drawer-menu :deep(.v-list-item) {
-  min-height: 46px;
+  min-height: 44px;
   margin-bottom: 4px;
   color: var(--dl-on-surface-variant);
   font-weight: 600;
@@ -293,13 +330,8 @@ function logout() {
   color: #fff !important;
 }
 
-.drawer-menu-footer {
-  border-top: 1px solid var(--dl-border);
-  padding-top: 10px;
-  margin-top: 6px;
-}
-
-.logout-item {
+.logout-item :deep(.v-list-item-title),
+.logout-item :deep(.v-icon) {
   color: var(--dl-error) !important;
 }
 
