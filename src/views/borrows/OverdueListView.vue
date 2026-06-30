@@ -316,6 +316,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { borrowApi } from '../../api/borrowApi'
 import { readerApi } from '../../api/readerApi'
 import { bookApi } from '../../api/bookApi'
+import { getBorrowStatusText } from '../../utils/borrowStatus'
 
 const overdueBorrows = ref([])
 const readers = ref([])
@@ -559,12 +560,6 @@ function getBookCode(item) {
   if (!book) return shortId(item.bookId)
 
   return book.isbn || shortId(book.id)
-}
-
-function getBorrowStatusText(status) {
-  if (status === 'Borrowed') return 'Đang mượn'
-  if (status === 'Returned') return 'Đã trả'
-  return status || '-'
 }
 
 function formatDate(value) {

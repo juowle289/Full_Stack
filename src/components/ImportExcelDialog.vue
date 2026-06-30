@@ -16,7 +16,9 @@
         <div class="template-row">
           <div>
             <div class="template-title">Chưa có file mẫu?</div>
-            <div class="template-caption">Tải mẫu CSV đúng cấu trúc để điền dữ liệu</div>
+            <div class="template-caption">
+              {{ uploadFn ? 'Mẫu CSV (mở bằng Excel, lưu lại dạng .xlsx rồi tải lên)' : 'Tải mẫu CSV đúng cấu trúc để điền dữ liệu' }}
+            </div>
           </div>
           <v-btn variant="outlined" color="primary" prepend-icon="mdi-download-outline" @click="downloadTemplate">
             Tải mẫu
@@ -24,15 +26,23 @@
         </div>
 
         <label class="dropzone" :class="{ 'dropzone-active': dragOver }" @dragover.prevent="dragOver = true" @dragleave.prevent="dragOver = false" @drop.prevent="handleDrop">
-          <input type="file" accept=".csv" class="d-none" @change="handleFileSelect" />
+          <input type="file" :accept="uploadFn ? '.xlsx,.xls' : '.csv'" class="d-none" @change="handleFileSelect" />
           <v-icon icon="mdi-cloud-upload-outline" size="36" color="var(--dl-primary)" />
-          <div class="dropzone-text">Kéo thả file CSV vào đây, hoặc bấm để chọn file</div>
-          <div class="dropzone-hint">Hỗ trợ định dạng .csv (mở được bằng Excel)</div>
+          <div class="dropzone-text">
+            {{ uploadFn ? 'Kéo thả file Excel (.xlsx) vào đây, hoặc bấm để chọn file' : 'Kéo thả file CSV vào đây, hoặc bấm để chọn file' }}
+          </div>
+          <div class="dropzone-hint">{{ uploadFn ? 'Hỗ trợ định dạng .xlsx, .xls' : 'Hỗ trợ định dạng .csv (mở được bằng Excel)' }}</div>
         </label>
 
         <v-alert v-if="parseError" type="error" variant="tonal" rounded="lg" class="mt-3">
           {{ parseError }}
         </v-alert>
+      </div>
+
+      <!-- Bước trung gian: đang upload trực tiếp (chế độ uploadFn, không qua bước preview) -->
+      <div v-else-if="step === 'uploading'" class="import-body text-center py-8">
+        <v-progress-circular indeterminate color="primary" size="36" />
+        <p class="mt-3 text-medium-emphasis">Đang gửi file lên hệ thống...</p>
       </div>
 
       <!-- Bước 2: Xem trước + validate -->
@@ -101,8 +111,11 @@ const props = defineProps({
   entityLabel: { type: String, default: 'dữ liệu' },
   // [{ key: 'title', label: 'Tựa sách', required: true }, ...]
   templateColumns: { type: Array, required: true },
-  // async (row) => Promise  - ném lỗi nếu thất bại để dialog biết dòng nào fail
-  createFn: { type: Function, required: true }
+  // async (row) => Promise  - dùng khi KHÔNG có uploadFn (parse CSV client-side, tạo từng dòng)
+  createFn: { type: Function, default: null },
+  // async (file) => Promise<{data}>  - dùng khi backend có endpoint nhận file Excel thật
+  // (ví dụ Books: POST /api/catalog/books/import) - bỏ qua hoàn toàn bước parse/preview.
+  uploadFn: { type: Function, default: null }
 })
 
 const emit = defineEmits(['update:modelValue', 'imported'])
@@ -147,12 +160,49 @@ function downloadTemplate() {
 function handleDrop(e) {
   dragOver.value = false
   const file = e.dataTransfer.files[0]
-  if (file) readFile(file)
+  if (file) handleFile(file)
 }
 
 function handleFileSelect(e) {
   const file = e.target.files[0]
-  if (file) readFile(file)
+  if (file) handleFile(file)
+}
+
+function handleFile(file) {
+  if (props.uploadFn) {
+    uploadDirectly(file)
+  } else {
+    readFile(file)
+  }
+}
+
+async function uploadDirectly(file) {
+  parseError.value = ''
+
+  const validExt = /\.(xlsx|xls)$/i.test(file.name)
+  if (!validExt) {
+    parseError.value = 'Chỉ hỗ trợ file .xlsx hoặc .xls.'
+    return
+  }
+
+  step.value = 'uploading'
+  importing.value = true
+
+  try {
+    const res = await props.uploadFn(file)
+
+    importedCount.value = res.data?.importedCount ?? res.data?.successCount ?? 0
+    failedCount.value = res.data?.failedCount ?? res.data?.errorCount ?? 0
+    step.value = 3
+
+    emit('imported', { success: importedCount.value, failed: failedCount.value, response: res.data })
+  } catch (err) {
+    parseError.value = err.response?.data?.message || 'Nhập file thất bại. Vui lòng kiểm tra đúng mẫu cột.'
+    step.value = 1
+    console.error(err.response || err)
+  } finally {
+    importing.value = false
+  }
 }
 
 function readFile(file) {

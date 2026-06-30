@@ -223,14 +223,11 @@
 
               <td>
                 <v-chip
-                  :color="borrow.status === 'Borrowed' ? 'warning' : 'success'"
+                  :color="getBorrowStatusColor(borrow.status)"
                   size="small"
                   variant="tonal"
                 >
-                  <v-icon
-                    start
-                    :icon="borrow.status === 'Borrowed' ? 'mdi-book-clock' : 'mdi-check-circle'"
-                  />
+                  <v-icon start :icon="getBorrowStatusIcon(borrow.status)" />
                   {{ getBorrowStatusText(borrow.status) }}
                 </v-chip>
               </td>
@@ -266,6 +263,36 @@
                       />
                     </template>
                   </v-tooltip>
+
+                  <template v-if="borrow.status === 'Requested'">
+                    <v-tooltip text="Phê duyệt yêu cầu mượn">
+                      <template #activator="{ props }">
+                        <v-btn
+                          v-bind="props"
+                          icon="mdi-check-bold"
+                          size="small"
+                          color="success"
+                          variant="tonal"
+                          :loading="loadingId === borrow.id + '-approve'"
+                          @click="openApproveDialog(borrow, true)"
+                        />
+                      </template>
+                    </v-tooltip>
+
+                    <v-tooltip text="Từ chối yêu cầu mượn">
+                      <template #activator="{ props }">
+                        <v-btn
+                          v-bind="props"
+                          icon="mdi-close-thick"
+                          size="small"
+                          color="error"
+                          variant="tonal"
+                          :loading="loadingId === borrow.id + '-reject'"
+                          @click="openApproveDialog(borrow, false)"
+                        />
+                      </template>
+                    </v-tooltip>
+                  </template>
 
                   <v-tooltip text="Trả sách">
                     <template #activator="{ props }">
@@ -434,6 +461,32 @@
     </v-dialog>
 
     <!-- Dialog trả sách -->
+    <!-- Dialog phê duyệt / từ chối yêu cầu mượn -->
+    <v-dialog v-model="approveDialog" max-width="420">
+      <v-card rounded="lg" class="pa-2">
+        <v-card-title class="dialog-title">
+          {{ approveDecision ? 'Xác nhận phê duyệt' : 'Xác nhận từ chối' }}
+        </v-card-title>
+        <v-card-text>
+          <template v-if="approveDecision">
+            Phê duyệt yêu cầu mượn sách <strong>{{ approveTarget?.bookTitle }}</strong> của
+            <strong>{{ approveTarget?.readerName }}</strong>? Sách sẽ chuyển sang trạng thái "Đang mượn".
+          </template>
+          <template v-else>
+            Từ chối yêu cầu mượn sách <strong>{{ approveTarget?.bookTitle }}</strong> của
+            <strong>{{ approveTarget?.readerName }}</strong>?
+          </template>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="approveDialog = false">Hủy</v-btn>
+          <v-btn :color="approveDecision ? 'success' : 'error'" :loading="!!loadingId" @click="submitApprove">
+            Xác nhận
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <v-dialog v-model="returnDialog" max-width="560">
       <v-card v-if="selectedBorrow">
         <v-card-title class="d-flex align-center">
@@ -661,6 +714,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { borrowApi } from '../../api/borrowApi'
 import { bookApi } from '../../api/bookApi'
 import { readerApi } from '../../api/readerApi'
+import { getBorrowStatusText, getBorrowStatusColor, getBorrowStatusIcon } from '../../utils/borrowStatus'
 
 const borrows = ref([])
 const books = ref([])
@@ -683,6 +737,9 @@ const success = ref(true)
 
 const createDialog = ref(false)
 const returnDialog = ref(false)
+const approveDialog = ref(false)
+const approveTarget = ref(null)
+const approveDecision = ref(true)
 const payDialog = ref(false)
 const detailDialog = ref(false)
 
@@ -864,6 +921,36 @@ function openCreateDialog() {
   createDialog.value = true
 }
 
+function openApproveDialog(borrow, decision) {
+  approveTarget.value = borrow
+  approveDecision.value = decision
+  approveDialog.value = true
+}
+
+async function submitApprove() {
+  const borrow = approveTarget.value
+  const decision = approveDecision.value
+  loadingId.value = borrow.id + (decision ? '-approve' : '-reject')
+
+  try {
+    const res = decision
+      ? await borrowApi.approve(borrow.id) // dueDate bỏ trống = dùng mặc định +14 ngày
+      : await borrowApi.reject(borrow.id)
+
+    success.value = true
+    message.value = res.data?.message || (decision ? 'Đã phê duyệt yêu cầu mượn' : 'Đã từ chối yêu cầu mượn')
+    approveDialog.value = false
+
+    await loadAllData()
+  } catch (err) {
+    success.value = false
+    message.value = err.response?.data?.message || 'Xử lý yêu cầu thất bại'
+    console.error(err.response || err)
+  } finally {
+    loadingId.value = ''
+  }
+}
+
 function openReturnDialog(borrow) {
   selectedBorrow.value = borrow
   returnForm.value.returnDate = toDateTimeLocal(new Date())
@@ -997,12 +1084,6 @@ function getBookCode(borrow) {
 
 function getReaderDisplayCode(reader) {
   return reader.studentCode || reader.cardNumber || shortId(reader.userId)
-}
-
-function getBorrowStatusText(status) {
-  if (status === 'Borrowed') return 'Đang mượn'
-  if (status === 'Returned') return 'Đã trả'
-  return status || '-'
 }
 
 function getPaymentText(borrow) {

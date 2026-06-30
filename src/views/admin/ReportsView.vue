@@ -3,7 +3,7 @@
     <div class="action-bar">
       <div>
         <div class="page-title">Báo cáo &amp; thống kê</div>
-        <div class="page-subtitle">Tạo, xem và xuất các chỉ số chi tiết của thư viện</div>
+        <div class="page-subtitle">Xem các chỉ số chi tiết của thư viện theo năm</div>
       </div>
 
       <v-spacer />
@@ -12,11 +12,6 @@
         Xuất Excel (CSV)
       </v-btn>
     </div>
-
-    <v-alert type="info" variant="tonal" rounded="lg" class="mb-4" icon="mdi-information-outline">
-      Báo cáo "Khối lượng mượn/trả" gọi <code>/api/identity/reports/borrow-return</code> đã có sẵn —
-      tham số ngày (<code>from</code>/<code>to</code>) là giả định, cần xác nhận lại tên field thật với backend.
-    </v-alert>
 
     <v-alert v-if="message" type="error" variant="tonal" rounded="lg" class="mb-4" closable @click:close="message = ''">
       {{ message }}
@@ -37,46 +32,29 @@
           variant="outlined"
         />
 
-        <template v-if="reportType === 'borrow-volume'">
-          <label class="field-label mt-2">Thời gian</label>
-          <div class="date-row">
-            <v-text-field v-model="fromDate" type="date" density="comfortable" variant="outlined" hide-details />
-            <v-text-field v-model="toDate" type="date" density="comfortable" variant="outlined" hide-details />
-          </div>
+        <label class="field-label mt-2">Năm</label>
+        <v-select
+          v-model="year"
+          :items="yearOptions"
+          density="comfortable"
+          variant="outlined"
+        />
 
-          <div class="preset-row">
-            <button
-              v-for="preset in presets"
-              :key="preset.label"
-              class="preset-chip"
-              type="button"
-              @click="applyPreset(preset.days)"
-            >
-              {{ preset.label }}
-            </button>
-          </div>
-        </template>
-
-        <template v-else>
-          <label class="field-label mt-2">Số lượng hiển thị (Top N)</label>
-          <v-text-field v-model.number="topN" type="number" density="comfortable" variant="outlined" hide-details />
-        </template>
-
-        <v-btn block color="primary" rounded="lg" class="mt-5" :loading="loading" @click="loadReport">
+        <v-btn block color="primary" rounded="lg" class="mt-3" :loading="loading" @click="loadReport">
           Cập nhật dữ liệu
         </v-btn>
 
         <div v-if="rows.length" class="summary-box">
-          <div class="summary-label">Tổng quan hiển thị</div>
-          <div class="summary-value">{{ rows.length }}</div>
-          <div class="summary-caption">dòng dữ liệu</div>
+          <div class="summary-label">{{ summaryLabel }}</div>
+          <div class="summary-value">{{ summaryValue }}</div>
+          <div class="summary-caption">{{ summaryCaption }}</div>
         </div>
       </v-card>
 
       <!-- Kết quả -->
       <v-card class="result-card" rounded="lg">
         <div class="result-header">
-          <h3>{{ activeReportLabel }}</h3>
+          <h3>{{ activeReportLabel }} - Năm {{ year }}</h3>
         </div>
 
         <div v-if="loading" class="loading-box">
@@ -88,19 +66,49 @@
           <p>Chưa có dữ liệu. Hãy chọn loại báo cáo và bấm "Cập nhật dữ liệu".</p>
         </div>
 
+        <!-- Mượn/trả theo tháng -->
+        <template v-else-if="reportType === 'borrowReturn'">
+          <div class="month-bars">
+            <div v-for="m in rows" :key="m.month" class="month-bar-row">
+              <span class="month-name">{{ m.monthName }}</span>
+              <div class="month-bar-track">
+                <div class="month-bar-fill borrow" :style="{ width: barWidth(m.borrowCount) + '%' }"></div>
+              </div>
+              <span class="month-value">{{ m.borrowCount }} mượn</span>
+              <div class="month-bar-track">
+                <div class="month-bar-fill return" :style="{ width: barWidth(m.returnCount) + '%' }"></div>
+              </div>
+              <span class="month-value">{{ m.returnCount }} trả</span>
+            </div>
+          </div>
+        </template>
+
+        <!-- Thể loại -->
+        <template v-else-if="reportType === 'categoryStats'">
+          <div class="category-list">
+            <div v-for="c in rows" :key="c.category" class="category-row">
+              <div class="category-head">
+                <span>{{ c.category }}</span>
+                <strong>{{ c.percent }}% ({{ c.borrowCount }} lượt)</strong>
+              </div>
+              <div class="month-bar-track">
+                <div class="month-bar-fill borrow" :style="{ width: c.percent + '%' }"></div>
+              </div>
+            </div>
+          </div>
+        </template>
+
+        <!-- Doanh thu phạt -->
         <template v-else>
-          <v-table class="report-table">
-            <thead>
-              <tr>
-                <th v-for="col in columns" :key="col">{{ col }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(row, idx) in rows" :key="idx">
-                <td v-for="col in columns" :key="col">{{ formatCell(row[col]) }}</td>
-              </tr>
-            </tbody>
-          </v-table>
+          <div class="month-bars">
+            <div v-for="m in rows" :key="m.month" class="month-bar-row">
+              <span class="month-name">{{ m.monthName }}</span>
+              <div class="month-bar-track">
+                <div class="month-bar-fill fine" :style="{ width: barWidth(m.totalFine) + '%' }"></div>
+              </div>
+              <span class="month-value">{{ formatMoney(m.totalFine) }}</span>
+            </div>
+          </div>
         </template>
       </v-card>
     </div>
@@ -111,52 +119,63 @@
 import { computed, ref } from 'vue'
 import { reportApi } from '../../api/reportApi'
 
-const reportType = ref('borrow-volume')
-const topN = ref(10)
+const reportType = ref('borrowReturn')
+const year = ref(new Date().getFullYear())
 const loading = ref(false)
 const message = ref('')
 const rows = ref([])
 
-const today = new Date()
-const monthAgo = new Date()
-monthAgo.setDate(monthAgo.getDate() - 30)
-
-const fromDate = ref(monthAgo.toISOString().slice(0, 10))
-const toDate = ref(today.toISOString().slice(0, 10))
+const currentYear = new Date().getFullYear()
+const yearOptions = [currentYear, currentYear - 1, currentYear - 2]
 
 const reportTypeOptions = [
-  { label: 'Khối lượng mượn/trả', value: 'borrow-volume' },
-  { label: 'Sách được mượn nhiều nhất', value: 'top-books' },
-  { label: 'Độc giả hoạt động nhiều nhất', value: 'top-readers' }
-]
-
-const presets = [
-  { label: '7 ngày', days: 7 },
-  { label: '30 ngày', days: 30 },
-  { label: 'Quý này', days: 90 },
-  { label: 'Năm nay', days: 365 }
+  { label: 'Mượn/trả theo tháng', value: 'borrowReturn' },
+  { label: 'Tỉ lệ mượn theo thể loại', value: 'categoryStats' },
+  { label: 'Doanh thu tiền phạt', value: 'fineRevenue' }
 ]
 
 const activeReportLabel = computed(() =>
   reportTypeOptions.find(o => o.value === reportType.value)?.label || 'Dữ liệu chi tiết'
 )
 
-const columns = computed(() => {
-  if (!rows.value.length) return []
-  return Object.keys(rows.value[0])
+const maxValue = computed(() => {
+  if (reportType.value === 'borrowReturn') {
+    return Math.max(...rows.value.map(r => Math.max(r.borrowCount, r.returnCount)), 1)
+  }
+  if (reportType.value === 'fineRevenue') {
+    return Math.max(...rows.value.map(r => r.totalFine), 1)
+  }
+  return 100
 })
 
-function applyPreset(days) {
-  const from = new Date()
-  from.setDate(from.getDate() - days)
-  fromDate.value = from.toISOString().slice(0, 10)
-  toDate.value = new Date().toISOString().slice(0, 10)
+function barWidth(value) {
+  return Math.max(4, Math.round((value / maxValue.value) * 100))
 }
 
-function formatCell(value) {
-  if (value === null || value === undefined) return '-'
-  if (typeof value === 'number') return value.toLocaleString('vi-VN')
-  return value
+const summaryLabel = computed(() => {
+  if (reportType.value === 'borrowReturn') return 'Tổng lượt mượn trong năm'
+  if (reportType.value === 'categoryStats') return 'Số thể loại có dữ liệu'
+  return 'Tổng tiền phạt trong năm'
+})
+
+const summaryValue = computed(() => {
+  if (reportType.value === 'borrowReturn') {
+    return rows.value.reduce((s, r) => s + r.borrowCount, 0).toLocaleString('vi-VN')
+  }
+  if (reportType.value === 'categoryStats') {
+    return rows.value.length
+  }
+  return formatMoney(rows.value.reduce((s, r) => s + r.totalFine, 0))
+})
+
+const summaryCaption = computed(() => {
+  if (reportType.value === 'borrowReturn') return 'lượt mượn'
+  if (reportType.value === 'categoryStats') return 'thể loại'
+  return 'tổng doanh thu phạt'
+})
+
+function formatMoney(value) {
+  return new Intl.NumberFormat('vi-VN').format(value || 0) + ' đ'
 }
 
 async function loadReport() {
@@ -167,16 +186,15 @@ async function loadReport() {
   try {
     let res
 
-    if (reportType.value === 'borrow-volume') {
-      res = await reportApi.borrowReturn({ from: fromDate.value, to: toDate.value })
-    } else if (reportType.value === 'top-books') {
-      res = await reportApi.topBooks(topN.value)
+    if (reportType.value === 'borrowReturn') {
+      res = await reportApi.borrowReturn(year.value)
+    } else if (reportType.value === 'categoryStats') {
+      res = await reportApi.categoryStats(year.value)
     } else {
-      res = await reportApi.topReaders(topN.value)
+      res = await reportApi.fineRevenue(year.value)
     }
 
-    const data = res.data
-    rows.value = Array.isArray(data) ? data : (data?.items || [])
+    rows.value = Array.isArray(res.data) ? res.data : []
   } catch (err) {
     message.value = err.response?.data?.message || 'Không tải được dữ liệu báo cáo'
     console.error(err.response || err)
@@ -188,9 +206,10 @@ async function loadReport() {
 function exportCsv() {
   if (!rows.value.length) return
 
-  const header = columns.value.join(',')
+  const columns = Object.keys(rows.value[0])
+  const header = columns.join(',')
   const body = rows.value
-    .map(row => columns.value.map(col => `"${String(row[col] ?? '').replace(/"/g, '""')}"`).join(','))
+    .map(row => columns.map(col => `"${String(row[col] ?? '').replace(/"/g, '""')}"`).join(','))
     .join('\n')
 
   const csv = `${header}\n${body}`
@@ -199,7 +218,7 @@ function exportCsv() {
 
   const link = document.createElement('a')
   link.href = url
-  link.download = `bao-cao-${reportType.value}-${Date.now()}.csv`
+  link.download = `bao-cao-${reportType.value}-${year.value}.csv`
   link.click()
   URL.revokeObjectURL(url)
 }
@@ -229,7 +248,7 @@ function exportCsv() {
 
 .reports-grid {
   display: grid;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: 300px 1fr;
   gap: 20px;
   align-items: flex-start;
 }
@@ -260,34 +279,6 @@ function exportCsv() {
   margin-bottom: 6px;
 }
 
-.date-row {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.preset-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.preset-chip {
-  font-size: 12px;
-  font-weight: 600;
-  padding: 6px 12px;
-  border-radius: var(--dl-radius-full);
-  border: 1px solid var(--dl-border);
-  background: var(--dl-surface);
-  cursor: pointer;
-}
-
-.preset-chip:hover {
-  border-color: var(--dl-primary);
-  color: var(--dl-primary);
-}
-
 .summary-box {
   margin-top: 20px;
   padding: 16px;
@@ -305,7 +296,7 @@ function exportCsv() {
 
 .summary-value {
   font-family: var(--dl-font-headline);
-  font-size: 30px;
+  font-size: 26px;
   font-weight: 700;
   margin-top: 4px;
 }
@@ -327,15 +318,81 @@ function exportCsv() {
   text-align: center;
 }
 
-.report-table th {
-  font-size: 11.5px;
-  text-transform: uppercase;
+/* Biểu đồ cột ngang theo tháng */
+.month-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.month-bar-row {
+  display: grid;
+  grid-template-columns: 70px 1fr 70px 1fr 70px;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+}
+
+.month-name {
+  font-weight: 700;
+  color: var(--dl-text-primary);
+}
+
+.month-bar-track {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--dl-surface-container-low);
+  overflow: hidden;
+}
+
+.month-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.month-bar-fill.borrow {
+  background: var(--dl-accent-gold);
+}
+
+.month-bar-fill.return {
+  background: var(--dl-primary);
+}
+
+.month-bar-fill.fine {
+  background: var(--dl-error);
+}
+
+.month-value {
   color: var(--dl-text-muted);
+  white-space: nowrap;
+}
+
+/* Thể loại */
+.category-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.category-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 6px;
+  color: var(--dl-text-primary);
 }
 
 @media (max-width: 960px) {
   .reports-grid {
     grid-template-columns: 1fr;
+  }
+
+  .month-bar-row {
+    grid-template-columns: 60px 1fr 50px;
+    grid-template-areas:
+      "name borrowbar borrowval"
+      "name returnbar returnval";
   }
 }
 </style>

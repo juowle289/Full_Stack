@@ -117,7 +117,7 @@
             size="large"
             class="mt-3"
             :disabled="!isAvailable(detailBook)"
-            @click="reserveInfoDialog = true"
+            @click="confirmReserveDialog = true"
           >
             Đặt giữ sách
           </v-btn>
@@ -125,25 +125,46 @@
       </v-card>
     </v-dialog>
 
-    <!-- Dialog thông báo đặt giữ -->
+    <!-- Xác nhận gửi yêu cầu mượn -->
+    <v-dialog v-model="confirmReserveDialog" max-width="400">
+      <v-card rounded="lg" class="pa-5">
+        <h3 class="mb-2">Xác nhận gửi yêu cầu mượn</h3>
+        <p class="text-medium-emphasis mb-4">
+          Yêu cầu mượn sách <strong>{{ detailBook?.title }}</strong> sẽ được gửi tới thủ thư để
+          phê duyệt. Bạn sẽ nhận được thông báo khi yêu cầu được xử lý.
+        </p>
+        <div class="d-flex ga-2">
+          <v-btn variant="text" class="flex-grow-1" @click="confirmReserveDialog = false">Hủy</v-btn>
+          <v-btn color="primary" class="flex-grow-1" :loading="reserving" @click="submitReserve">
+            Gửi yêu cầu
+          </v-btn>
+        </div>
+      </v-card>
+    </v-dialog>
+
+    <!-- Thông báo kết quả -->
     <v-dialog v-model="reserveInfoDialog" max-width="380">
       <v-card rounded="lg" class="pa-5 text-center">
-        <v-icon icon="mdi-clock-outline" size="34" color="var(--dl-accent-gold)" class="mb-2" />
-        <h3 class="mb-2">Đặt giữ sách tại quầy</h3>
-        <p class="text-medium-emphasis mb-4">
-          Tính năng đặt giữ trực tuyến đang được phát triển. Hiện tại, vui lòng đến quầy lưu
-          thông tại chi nhánh gần nhất và xuất trình thẻ thư viện để mượn sách này.
-        </p>
+        <v-icon
+          :icon="reserveSuccess ? 'mdi-clock-check-outline' : 'mdi-alert-circle-outline'"
+          size="34"
+          :color="reserveSuccess ? 'var(--dl-success)' : 'var(--dl-error)'"
+          class="mb-2"
+        />
+        <h3 class="mb-2">{{ reserveSuccess ? 'Đã gửi yêu cầu mượn' : 'Không thể gửi yêu cầu' }}</h3>
+        <p class="text-medium-emphasis mb-4">{{ reserveMessage }}</p>
         <v-btn block variant="tonal" color="primary" @click="reserveInfoDialog = false">Đã hiểu</v-btn>
       </v-card>
     </v-dialog>
   </div>
 </template>
 
+
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { bookApi } from '../../api/bookApi'
+import { borrowApi } from '../../api/borrowApi'
 
 const route = useRoute()
 
@@ -154,6 +175,33 @@ const activeCategory = ref(route.query.category || null)
 const detailDialog = ref(false)
 const detailBook = ref(null)
 const reserveInfoDialog = ref(false)
+const confirmReserveDialog = ref(false)
+const reserving = ref(false)
+const reserveSuccess = ref(true)
+const reserveMessage = ref('')
+
+async function submitReserve() {
+  reserving.value = true
+
+  try {
+    await borrowApi.requestBorrow({
+      bookId: detailBook.value.id,
+      requestedDays: 14
+    })
+
+    reserveSuccess.value = true
+    reserveMessage.value = 'Yêu cầu mượn đã được gửi tới thủ thư. Bạn có thể theo dõi trạng thái tại "Lịch sử mượn sách".'
+    confirmReserveDialog.value = false
+    detailDialog.value = false
+  } catch (err) {
+    reserveSuccess.value = false
+    reserveMessage.value = err.response?.data?.message || 'Gửi yêu cầu mượn thất bại. Vui lòng thử lại sau.'
+    console.error(err.response || err)
+  } finally {
+    reserving.value = false
+    reserveInfoDialog.value = true
+  }
+}
 
 const categories = computed(() => {
   const set = new Set(books.value.map(b => b.category).filter(Boolean))

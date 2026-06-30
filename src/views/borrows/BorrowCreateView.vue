@@ -263,6 +263,37 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Dialog QR thanh toán phạt - tự mở sau khi trả sách có phát sinh phạt -->
+    <v-dialog v-model="fineQrDialog" max-width="380">
+      <v-card rounded="lg" class="pa-5 text-center">
+        <h3 class="mb-3">Thanh toán phí phạt</h3>
+
+        <div v-if="fineQrLoading" class="py-6">
+          <v-progress-circular indeterminate color="primary" />
+        </div>
+
+        <template v-else-if="fineQrData">
+          <img :src="fineQrData.qrImageUrl" alt="QR VietQR" width="200" height="200" class="mb-3" style="border-radius: 8px;" />
+          <p class="mb-1"><strong>{{ formatMoney(fineQrData.fineAmount) }}</strong></p>
+          <p class="text-caption text-medium-emphasis mb-4">
+            {{ fineQrData.bookTitle }} · {{ fineQrData.readerName }}<br>
+            Quét mã để chuyển khoản, hoặc thu tiền mặt rồi xác nhận bên dưới.
+          </p>
+        </template>
+
+        <v-alert v-else type="info" variant="tonal" density="compact" rounded="lg" class="mb-4">
+          Không lấy được mã QR — vẫn có thể thu tiền mặt và xác nhận trực tiếp.
+        </v-alert>
+
+        <div class="d-flex ga-2">
+          <v-btn variant="text" class="flex-grow-1" @click="fineQrDialog = false">Đóng</v-btn>
+          <v-btn color="success" class="flex-grow-1" :loading="fineQrPaying" @click="confirmFinePaid">
+            Xác nhận đã thu
+          </v-btn>
+        </div>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -270,7 +301,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { readerApi } from '../../api/readerApi'
 import { bookApi } from '../../api/bookApi'
-import { borrowApi } from '../../api/borrowApi'
+import { borrowApi, borrowSettingsApi } from '../../api/borrowApi'
 
 const readers = ref([])
 const books = ref([])
@@ -292,9 +323,13 @@ const condition = ref('Normal')
 const returning = ref(false)
 const confirmReturnDialog = ref(false)
 
-const FINE_PER_DAY = 5000
+// Giá trị mặc định - sẽ được nạp đè bằng dữ liệu thật từ borrowSettingsApi khi mount.
+// LOAN_DAYS giữ cứng 14 vì backend không có field này trong BorrowSettings (chỉ có
+// maxBorrowingBooks + finePerLateDay) - ngày hẹn trả cụ thể do Librarian/Admin quyết định
+// khi duyệt phiếu (approve), 14 ngày chỉ là gợi ý hiển thị ở Quầy lưu thông.
+const FINE_PER_DAY = ref(5000)
 const LOAN_DAYS = 14
-const MAX_BOOKS_PER_READER = 5
+const MAX_BOOKS_PER_READER = ref(5)
 
 const selectedReader = computed(() =>
   readers.value.find(r => r.userId === selectedReaderId.value) || null
@@ -331,7 +366,7 @@ function overdueDays(record) {
 
 const estimatedFine = computed(() => {
   if (!selectedReturn.value) return 0
-  return overdueDays(selectedReturn.value) * FINE_PER_DAY
+  return overdueDays(selectedReturn.value) * FINE_PER_DAY.value
 })
 
 function addBookToCart(bookId) {
@@ -378,9 +413,9 @@ async function loadData() {
 }
 
 async function submitBorrow() {
-  if (readerCurrentBorrowCount.value + cart.value.length > MAX_BOOKS_PER_READER) {
+  if (readerCurrentBorrowCount.value + cart.value.length > MAX_BOOKS_PER_READER.value) {
     success.value = false
-    message.value = `Độc giả chỉ được mượn tối đa ${MAX_BOOKS_PER_READER} cuốn cùng lúc.`
+    message.value = `Độc giả chỉ được mượn tối đa ${MAX_BOOKS_PER_READER.value} cuốn cùng lúc.`
     confirmBorrowDialog.value = false
     return
   }
@@ -419,9 +454,11 @@ async function submitBorrow() {
 
 async function submitReturn() {
   returning.value = true
+  const returnedId = selectedReturnId.value
+  const returnedBookInfo = selectedReturn.value
 
   try {
-    const res = await borrowApi.returnBook(selectedReturnId.value, {
+    const res = await borrowApi.returnBook(returnedId, {
       returnDate: new Date().toISOString(),
       condition: condition.value
     })
@@ -434,6 +471,12 @@ async function submitReturn() {
     confirmReturnDialog.value = false
 
     await loadData()
+
+    // Nếu phiếu này phát sinh phạt, mở luôn dialog QR thanh toán cho librarian thu tiền ngay.
+    const lateDays = returnedBookInfo ? overdueDays(returnedBookInfo) : 0
+    if (lateDays > 0) {
+      await openPostReturnFineDialog(returnedId)
+    }
   } catch (err) {
     success.value = false
     message.value = err.response?.data?.message || 'Xử lý trả sách thất bại'
@@ -443,7 +486,60 @@ async function submitReturn() {
   }
 }
 
-onMounted(loadData)
+const fineQrDialog = ref(false)
+const fineQrLoading = ref(false)
+const fineQrData = ref(null)
+const fineQrBorrowId = ref(null)
+const fineQrPaying = ref(false)
+
+async function openPostReturnFineDialog(borrowId) {
+  fineQrBorrowId.value = borrowId
+  fineQrDialog.value = true
+  fineQrLoading.value = true
+  fineQrData.value = null
+
+  try {
+    const res = await borrowApi.getFinePaymentQr(borrowId)
+    fineQrData.value = res.data
+  } catch (err) {
+    console.error(err.response || err)
+  } finally {
+    fineQrLoading.value = false
+  }
+}
+
+async function confirmFinePaid() {
+  fineQrPaying.value = true
+
+  try {
+    await borrowApi.payFine(fineQrBorrowId.value)
+    success.value = true
+    message.value = 'Đã xác nhận thu phạt thành công'
+    fineQrDialog.value = false
+  } catch (err) {
+    success.value = false
+    message.value = err.response?.data?.message || 'Xác nhận thu phạt thất bại'
+    console.error(err.response || err)
+  } finally {
+    fineQrPaying.value = false
+  }
+}
+
+async function loadSettings() {
+  try {
+    const res = await borrowSettingsApi.get()
+    MAX_BOOKS_PER_READER.value = res.data?.maxBorrowingBooks || 5
+    FINE_PER_DAY.value = res.data?.finePerLateDay || 5000
+  } catch (err) {
+    // Giữ giá trị mặc định nếu chưa lấy được cấu hình thật.
+    console.error(err.response || err)
+  }
+}
+
+onMounted(() => {
+  loadData()
+  loadSettings()
+})
 </script>
 
 <style scoped>

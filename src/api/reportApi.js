@@ -5,19 +5,19 @@ export const reportApi = {
     return api.get('/api/identity/reports/dashboard')
   },
 
-  topBooks(take = 10) {
-    return api.get('/api/identity/reports/top-books', {
-      params: { take }
-    })
+  // Biểu đồ mượn/trả theo tháng trong năm. Path đúng theo tài liệu backend:
+  // số ít "report" (không phải "reports") + camelCase "borrowReturn".
+  borrowReturn(year) {
+    return api.get('/api/identity/report/borrowReturn', { params: { year } })
   },
 
-  topReaders(take = 10) {
-    return api.get('/api/identity/reports/top-readers', {
-      params: { take }
-    })
+  // Thống kê thể loại sách được mượn nhiều nhất trong năm.
+  categoryStats(year) {
+    return api.get('/api/identity/report/categoryStats', { params: { year } })
   },
 
-  borrowReturn(params) {
-    return api.get('/api/identity/reports/borrow-return', { params })
+  // Doanh thu tiền phạt theo tháng trong năm.
+  fineRevenue(year) {
+    return api.get('/api/identity/report/fineRevenue', { params: { year } })
   }
 }

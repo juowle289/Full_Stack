@@ -66,15 +66,52 @@
       <v-spacer />
 
       <div class="topbar-actions">
-        <v-tooltip text="Thông báo">
+        <v-menu v-model="notifMenu" :close-on-content-click="false" location="bottom end" width="360">
           <template #activator="{ props }">
-            <v-btn v-bind="props" icon variant="text">
-              <v-badge color="error" dot>
+            <v-btn v-bind="props" icon variant="text" @click="loadNotifications">
+              <v-badge :content="unreadCount" :model-value="unreadCount > 0" color="error">
                 <v-icon icon="mdi-bell-outline" />
               </v-badge>
             </v-btn>
           </template>
-        </v-tooltip>
+
+          <v-card rounded="lg" class="notif-panel">
+            <div class="notif-header">
+              <h4>Thông báo</h4>
+              <v-btn v-if="unreadCount > 0" variant="text" size="small" color="primary" @click="markAllRead">
+                Đọc tất cả
+              </v-btn>
+            </div>
+
+            <v-divider />
+
+            <div v-if="notifLoading" class="notif-empty">
+              <v-progress-circular indeterminate color="primary" size="24" />
+            </div>
+
+            <div v-else-if="!notifications.length" class="notif-empty">
+              <v-icon icon="mdi-bell-off-outline" size="28" color="var(--dl-text-muted)" />
+              <p>Không có thông báo nào</p>
+            </div>
+
+            <div v-else class="notif-list">
+              <div
+                v-for="item in notifications"
+                :key="item.id"
+                class="notif-item"
+                :class="{ 'notif-item-unread': !item.isRead }"
+                @click="markOneRead(item)"
+              >
+                <v-icon :icon="notifIcon(item.type)" size="18" :color="notifColor(item.type)" />
+                <div class="notif-body">
+                  <div class="notif-message">{{ item.message }}</div>
+                  <div class="notif-time">{{ formatNotifTime(item.createdAt) }}</div>
+                </div>
+                <span v-if="!item.isRead" class="notif-dot"></span>
+              </div>
+            </div>
+          </v-card>
+        </v-menu>
 
         <router-link to="/app/account-settings" class="topbar-user d-none d-md-flex">
           <div class="text-right">
@@ -108,12 +145,74 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
+import { notificationApi } from '../api/notificationApi'
 
 const drawer = ref(true)
 const searchKeyword = ref('')
+
+const notifMenu = ref(false)
+const notifLoading = ref(false)
+const notifications = ref([])
+
+const unreadCount = computed(() => notifications.value.filter(n => !n.isRead).length)
+
+async function loadNotifications() {
+  notifLoading.value = true
+
+  try {
+    const res = await notificationApi.getAll()
+    notifications.value = res.data || []
+  } catch (err) {
+    notifications.value = []
+    console.error(err.response || err)
+  } finally {
+    notifLoading.value = false
+  }
+}
+
+async function markOneRead(item) {
+  if (item.isRead) return
+
+  try {
+    await notificationApi.markAsRead(item.id)
+    item.isRead = true
+  } catch (err) {
+    console.error(err.response || err)
+  }
+}
+
+async function markAllRead() {
+  try {
+    await notificationApi.markAllAsRead()
+    notifications.value.forEach(n => { n.isRead = true })
+  } catch (err) {
+    console.error(err.response || err)
+  }
+}
+
+function notifIcon(type) {
+  if (type === 'BorrowCreated') return 'mdi-book-arrow-right-outline'
+  if (type === 'BookReturned') return 'mdi-book-arrow-left-outline'
+  if (type === 'FineCreated') return 'mdi-cash-multiple'
+  return 'mdi-information-outline'
+}
+
+function notifColor(type) {
+  if (type === 'BorrowCreated') return 'var(--dl-primary)'
+  if (type === 'BookReturned') return 'var(--dl-success)'
+  if (type === 'FineCreated') return 'var(--dl-error)'
+  return 'var(--dl-text-muted)'
+}
+
+function formatNotifTime(value) {
+  if (!value) return ''
+  return new Date(value).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+}
+
+onMounted(loadNotifications)
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -380,6 +479,85 @@ function logout() {
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+.notif-panel {
+  max-height: 420px;
+  display: flex;
+  flex-direction: column;
+}
+
+.notif-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 10px;
+}
+
+.notif-header h4 {
+  font-family: var(--dl-font-headline);
+  font-size: 16px;
+  margin: 0;
+  color: var(--dl-text-primary);
+}
+
+.notif-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 36px 16px;
+  color: var(--dl-text-muted);
+  font-size: 13px;
+}
+
+.notif-list {
+  overflow-y: auto;
+  max-height: 340px;
+}
+
+.notif-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--dl-border);
+  position: relative;
+}
+
+.notif-item:hover {
+  background: var(--dl-surface-container-low);
+}
+
+.notif-item-unread {
+  background: rgba(6, 78, 59, 0.03);
+}
+
+.notif-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.notif-message {
+  font-size: 13px;
+  color: var(--dl-text-primary);
+  line-height: 1.5;
+}
+
+.notif-time {
+  font-size: 11px;
+  color: var(--dl-text-muted);
+  margin-top: 2px;
+}
+
+.notif-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--dl-error);
+  margin-top: 4px;
+  flex: 0 0 auto;
 }
 
 .topbar-user {

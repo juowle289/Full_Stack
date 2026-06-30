@@ -42,7 +42,7 @@
       v-model="importDialog"
       entity-label="sách"
       :template-columns="bookImportColumns"
-      :create-fn="importBookRow"
+      :upload-fn="bookApi.importExcel"
       @imported="loadBooks"
     />
 
@@ -472,14 +472,19 @@ const auth = useAuthStore()
 
 const importDialog = ref(false)
 
+// Đúng tên cột theo BookImportDto (CatalogService.md) - backend đọc trực tiếp
+// bằng MiniExcel theo tên cột tiếng Việt này.
 const bookImportColumns = [
-  { key: 'title', label: 'Tựa sách', required: true },
-  { key: 'author', label: 'Tác giả', required: true },
-  { key: 'isbn', label: 'ISBN', required: false },
-  { key: 'category', label: 'Thể loại', required: false },
-  { key: 'publisher', label: 'Nhà xuất bản', required: false },
-  { key: 'publishingYear', label: 'Năm XB', required: false },
-  { key: 'totalCopies', label: 'Số lượng', required: true }
+  { key: 'isbn', label: 'ISBN', required: true },
+  { key: 'title', label: 'Tên Sách', required: true },
+  { key: 'author', label: 'Tác Giả', required: true },
+  { key: 'publisher', label: 'Nhà Xuất Bản', required: false },
+  { key: 'publishingYear', label: 'Năm Xuất Bản', required: false },
+  { key: 'category', label: 'Thể Loại', required: true },
+  { key: 'description', label: 'Mô Tả', required: false },
+  { key: 'coverImageUrl', label: 'Ảnh Bìa', required: false },
+  { key: 'totalCopies', label: 'Tổng Số Bản', required: true },
+  { key: 'shelfLocation', label: 'Vị Trí Kệ', required: false }
 ]
 
 const books = ref([])
@@ -531,19 +536,6 @@ const copyTabs = [
   { label: 'Đang có sẵn', value: 'available' },
   { label: 'Đang mượn', value: 'borrowed' }
 ]
-
-function importBookRow(row) {
-  return bookApi.create({
-    title: row.title,
-    author: row.author,
-    isbn: row.isbn || '',
-    category: row.category || '',
-    publisher: row.publisher || '',
-    publishingYear: Number(row.publishingYear) || null,
-    totalCopies: Number(row.totalCopies) || 1,
-    availableCopies: Number(row.totalCopies) || 1
-  })
-}
 
 const canManageBook = computed(() => ['Admin', 'Librarian'].includes(auth.role))
 
@@ -636,7 +628,10 @@ async function loadBooks() {
   loading.value = true
   message.value = ''
 
-  const params = {}
+  // Backend luôn phân trang (mặc định pageSize=10 nếu không truyền). App này đang
+  // lọc/phân trang phía client trên toàn bộ kết quả khớp, nên cần xin số lượng lớn
+  // trong 1 lần gọi để không bị cắt mất dữ liệu.
+  const params = { page: 1, pageSize: 1000 }
   if (keyword.value) params.keyword = keyword.value
   if (category.value) params.category = category.value
 

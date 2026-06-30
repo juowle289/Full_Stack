@@ -19,13 +19,22 @@ export const useAuthStore = defineStore('auth', {
     async login(email, password) {
       const response = await authApi.login({ email, password })
 
-      this.token = response.data.accessToken
-      this.user = response.data.user
-
+      // Backend trả về dạng phẳng: { token, fullName, role } - không có accessToken/user lồng nhau.
+      this.token = response.data.token
       localStorage.setItem('accessToken', this.token)
+
+      // Gọi /auth/me để lấy đầy đủ thông tin user (email, userId...) vì login chỉ trả tối thiểu.
+      try {
+        const meRes = await authApi.me()
+        this.user = meRes.data
+      } catch {
+        // Nếu /me lỗi, vẫn dùng tạm thông tin tối thiểu từ response login.
+        this.user = { fullName: response.data.fullName, role: response.data.role }
+      }
+
       localStorage.setItem('user', JSON.stringify(this.user))
 
-      return response.data.user
+      return this.user
     },
 
     logout() {

@@ -109,8 +109,23 @@
       <v-card rounded="lg" class="pa-2">
         <v-card-title class="dialog-title">Xác nhận thu phạt</v-card-title>
         <v-card-text>
-          Xác nhận thu <strong>{{ formatMoney(targetFine?.fineAmount) }}</strong> từ
-          <strong>{{ targetFine?.readerName }}</strong> — không thể hoàn tác sau khi xác nhận.
+          <p class="mb-3">
+            Khoản phạt <strong>{{ formatMoney(targetFine?.fineAmount) }}</strong> từ
+            <strong>{{ targetFine?.readerName }}</strong> — không thể hoàn tác sau khi xác nhận.
+          </p>
+
+          <div v-if="qrLoading" class="text-center py-4">
+            <v-progress-circular indeterminate color="primary" size="28" />
+          </div>
+
+          <div v-else-if="qrImageUrl" class="qr-box">
+            <img :src="qrImageUrl" alt="Mã QR thanh toán VietQR" />
+            <p class="qr-caption">Độc giả quét mã để chuyển khoản, hoặc thu tiền mặt rồi xác nhận bên dưới.</p>
+          </div>
+
+          <v-alert v-else type="info" variant="tonal" density="compact" rounded="lg" class="mt-2">
+            Không lấy được mã QR thanh toán — có thể thu tiền mặt và xác nhận trực tiếp.
+          </v-alert>
         </v-card-text>
         <v-card-actions>
           <v-spacer />
@@ -136,6 +151,8 @@ const statusFilter = ref('all')
 
 const confirmDialog = ref(false)
 const targetFine = ref(null)
+const qrLoading = ref(false)
+const qrImageUrl = ref('')
 
 const unpaidFines = computed(() => fines.value.filter(f => !f.isFinePaid))
 
@@ -175,9 +192,22 @@ async function loadFines() {
   }
 }
 
-function openConfirm(item) {
+async function openConfirm(item) {
   targetFine.value = item
   confirmDialog.value = true
+  qrImageUrl.value = ''
+  qrLoading.value = true
+
+  try {
+    // Backend trả sẵn qrImageUrl (đã build link VietQR đầy đủ) - chỉ cần hiển thị.
+    const res = await borrowApi.getFinePaymentQr(item.id)
+    qrImageUrl.value = res.data?.qrImageUrl || ''
+  } catch (err) {
+    qrImageUrl.value = ''
+    console.error(err.response || err)
+  } finally {
+    qrLoading.value = false
+  }
 }
 
 async function payFine() {
@@ -220,5 +250,25 @@ onMounted(loadFines)
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.qr-box {
+  text-align: center;
+  padding: 16px;
+  border-radius: var(--dl-radius-md, 12px);
+  background: var(--dl-surface-container-low, #f2f4f1);
+}
+
+.qr-box img {
+  width: 180px;
+  height: 180px;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.qr-caption {
+  font-size: 12px;
+  color: var(--dl-text-muted, #6b7280);
+  margin: 8px 0 0;
 }
 </style>

@@ -61,14 +61,29 @@
 
     <v-dialog v-model="receiptDialog" max-width="380">
       <v-card rounded="lg" class="receipt-card">
-        <div class="receipt-icon">
-          <v-icon icon="mdi-check" size="26" />
+        <div v-if="receiptLoading" class="py-6">
+          <v-progress-circular indeterminate color="primary" />
         </div>
-        <h3>Biên lai thanh toán</h3>
 
-        <div class="receipt-row"><span>Sách</span><strong>{{ receiptItem?.bookTitle }}</strong></div>
-        <div class="receipt-row"><span>Số tiền</span><strong>{{ formatMoney(receiptItem?.fineAmount) }}</strong></div>
-        <div class="receipt-row"><span>Ngày trả</span><strong>{{ formatDate(receiptItem?.returnDate) }}</strong></div>
+        <template v-else-if="receiptInvoice">
+          <div class="receipt-icon">
+            <v-icon icon="mdi-check" size="26" />
+          </div>
+          <h3>Biên lai thanh toán</h3>
+
+          <div class="receipt-row"><span>Mã hóa đơn</span><strong>{{ shortId(receiptInvoice.id) }}</strong></div>
+          <div class="receipt-row"><span>Nội dung</span><strong class="text-right">{{ receiptInvoice.description }}</strong></div>
+          <div class="receipt-row"><span>Số tiền</span><strong>{{ formatMoney(receiptInvoice.amount) }}</strong></div>
+          <div class="receipt-row"><span>Ngày lập</span><strong>{{ formatDate(receiptInvoice.createdAt) }}</strong></div>
+        </template>
+
+        <template v-else>
+          <div class="receipt-icon" style="background: rgba(220,38,38,0.1); color: var(--dl-error);">
+            <v-icon icon="mdi-receipt-text-remove-outline" size="26" />
+          </div>
+          <h3>Không tìm thấy hóa đơn</h3>
+          <p class="text-caption text-medium-emphasis">Hóa đơn cho khoản phạt này chưa được ghi nhận.</p>
+        </template>
 
         <v-btn block variant="tonal" color="primary" class="mt-4" @click="receiptDialog = false">Đóng</v-btn>
       </v-card>
@@ -78,12 +93,13 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { borrowApi } from '../../api/borrowApi'
+import { borrowApi, invoiceApi } from '../../api/borrowApi'
 
 const fines = ref([])
 const loading = ref(true)
 const receiptDialog = ref(false)
-const receiptItem = ref(null)
+const receiptLoading = ref(false)
+const receiptInvoice = ref(null)
 
 const unpaidFines = computed(() => fines.value.filter(f => !f.isFinePaid))
 const totalUnpaid = computed(() => unpaidFines.value.reduce((sum, f) => sum + Number(f.fineAmount || 0), 0))
@@ -97,9 +113,25 @@ function formatMoney(value) {
   return new Intl.NumberFormat('vi-VN').format(value || 0) + ' đ'
 }
 
-function openReceipt(item) {
-  receiptItem.value = item
+function shortId(id) {
+  return id ? String(id).slice(0, 8).toUpperCase() : '-'
+}
+
+async function openReceipt(item) {
   receiptDialog.value = true
+  receiptLoading.value = true
+  receiptInvoice.value = null
+
+  try {
+    const res = await invoiceApi.getByBorrow(item.id)
+    const invoices = Array.isArray(res.data) ? res.data : [res.data].filter(Boolean)
+    receiptInvoice.value = invoices.find(inv => inv.type === 'FinePayment') || invoices[0] || null
+  } catch (err) {
+    receiptInvoice.value = null
+    console.error(err.response || err)
+  } finally {
+    receiptLoading.value = false
+  }
 }
 
 async function loadFines() {

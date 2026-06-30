@@ -164,13 +164,13 @@
 
             <td>
               <v-chip
-                :color="isItemOverdue(item) ? 'error' : (item.status === 'Borrowed' ? 'warning' : 'success')"
+                :color="isItemOverdue(item) ? 'error' : getBorrowStatusColor(item.status)"
                 size="small"
                 variant="tonal"
               >
                 <v-icon
                   start
-                  :icon="isItemOverdue(item) ? 'mdi-alert-circle' : (item.status === 'Borrowed' ? 'mdi-book-clock' : 'mdi-check-circle')"
+                  :icon="isItemOverdue(item) ? 'mdi-alert-circle' : getBorrowStatusIcon(item.status)"
                 />
                 {{ isItemOverdue(item) ? 'Quá hạn' : getBorrowStatusText(item.status) }}
               </v-chip>
@@ -214,6 +214,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { borrowApi } from '../../api/borrowApi'
+import { getBorrowStatusText, getBorrowStatusColor, getBorrowStatusIcon } from '../../utils/borrowStatus'
 
 const borrows = ref([])
 const keyword = ref('')
@@ -271,12 +272,6 @@ async function loadMyBorrows() {
   } finally {
     loading.value = false
   }
-}
-
-function getBorrowStatusText(status) {
-  if (status === 'Borrowed') return 'Đang mượn'
-  if (status === 'Returned') return 'Đã trả'
-  return status || '-'
 }
 
 function isItemOverdue(item) {
