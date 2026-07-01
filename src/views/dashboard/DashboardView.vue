@@ -13,274 +13,243 @@
         <p>{{ todayLabel }}</p>
       </div>
 
-      <v-btn
-        color="primary"
-        rounded="lg"
-        prepend-icon="mdi-refresh"
-        :loading="loading"
-        @click="loadDashboard"
-      >
+      <v-btn color="primary" rounded="lg" prepend-icon="mdi-refresh" :loading="loading" @click="loadDashboard">
         Tải lại
       </v-btn>
     </div>
 
-    <v-alert
-      v-if="message"
-      type="error"
-      variant="tonal"
-      rounded="lg"
-      class="mb-5"
-    >
+    <v-alert v-if="message" type="error" variant="tonal" rounded="lg" class="mb-5">
       {{ message }}
     </v-alert>
 
     <!-- ════════ ADMIN: phân tích toàn hệ thống ════════ -->
     <template v-if="isAdmin">
-    <!-- Stats -->
-    <section class="stats-grid">
-      <v-card
-        v-for="card in summaryCards"
-        :key="card.title"
-        class="stat-card"
-      >
-        <div class="stat-icon" :class="card.iconClass">
-          <v-icon :icon="card.icon" size="30" />
-        </div>
-
-        <div>
-          <div class="stat-label">{{ card.title }}</div>
-          <div class="stat-value">{{ card.value }}</div>
-          <div class="stat-subtitle">{{ card.subtitle }}</div>
-        </div>
-      </v-card>
-    </section>
-
-    <!-- Analytics -->
-    <section class="analytics-grid">
-      <!-- Bar chart -->
-      <v-card class="analytics-card">
-        <div class="card-header">
-          <div>
-            <h2>Thống kê mượn/trả</h2>
-            <p>Dữ liệu tổng hợp từ Report Service</p>
+      <!-- Stats -->
+      <section class="stats-grid">
+        <v-card v-for="card in summaryCards" :key="card.title" class="stat-card">
+          <div class="stat-icon" :class="card.iconClass">
+            <v-icon :icon="card.icon" size="30" />
           </div>
 
-          <v-chip color="secondary" variant="tonal" size="small">
-            Năm 2026
-          </v-chip>
-        </div>
+          <div>
+            <div class="stat-label">{{ card.title }}</div>
+            <div class="stat-value">{{ card.value }}</div>
+            <div class="stat-subtitle">{{ card.subtitle }}</div>
+          </div>
+        </v-card>
+      </section>
 
-        <div class="line-chart">
-          <svg viewBox="0 0 500 200" preserveAspectRatio="none" class="line-svg">
-            <defs>
-              <linearGradient id="lineAreaFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="var(--dl-primary)" stop-opacity="0.28" />
-                <stop offset="100%" stop-color="var(--dl-primary)" stop-opacity="0" />
-              </linearGradient>
-            </defs>
+      <!-- Analytics -->
+      <section class="analytics-grid">
+        <!-- Bar chart -->
+        <v-card class="analytics-card">
+          <div class="card-header">
+            <div>
+              <h2>Thống kê mượn/trả</h2>
+              <p>Dữ liệu tổng hợp từ Report Service</p>
+            </div>
 
-            <!-- Lưới ngang -->
-            <line v-for="g in 4" :key="g" x1="0" x2="500" :y1="g * 40" :y2="g * 40" class="grid-line" />
+            <v-chip color="secondary" variant="tonal" size="small">
+              Năm 2026
+            </v-chip>
+          </div>
 
-            <!-- Vùng tô dưới đường -->
-            <polygon :points="areaPoints" fill="url(#lineAreaFill)" />
+          <div class="line-chart">
+            <svg viewBox="0 0 500 200" preserveAspectRatio="none" class="line-svg">
+              <defs>
+                <linearGradient id="lineAreaFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="var(--dl-primary)" stop-opacity="0.28" />
+                  <stop offset="100%" stop-color="var(--dl-primary)" stop-opacity="0" />
+                </linearGradient>
+              </defs>
 
-            <!-- Đường nối -->
-            <polyline :points="linePoints" fill="none" stroke="var(--dl-primary)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+              <!-- Lưới ngang -->
+              <line v-for="g in 4" :key="g" x1="0" x2="500" :y1="g * 40" :y2="g * 40" class="grid-line" />
 
-            <!-- Điểm dữ liệu -->
-            <circle
-              v-for="(p, idx) in chartPoints"
-              :key="idx"
-              :cx="p.x"
-              :cy="p.y"
-              r="5"
-              fill="var(--dl-surface)"
-              stroke="var(--dl-primary)"
-              stroke-width="3"
-            />
-          </svg>
+              <!-- Vùng tô dưới đường -->
+              <polygon :points="areaPoints" fill="url(#lineAreaFill)" />
 
-          <div class="line-labels">
-            <div v-for="bar in chartBars" :key="bar.label" class="line-label-item">
-              <div class="bar-label">{{ bar.label }}</div>
-              <div class="bar-value">{{ formatNumber(bar.value) }}</div>
+              <!-- Đường nối -->
+              <polyline :points="linePoints" fill="none" stroke="var(--dl-primary)" stroke-width="3"
+                stroke-linecap="round" stroke-linejoin="round" />
+
+              <!-- Điểm dữ liệu -->
+              <circle v-for="(p, idx) in chartPoints" :key="idx" :cx="p.x" :cy="p.y" r="5" fill="var(--dl-surface)"
+                stroke="var(--dl-primary)" stroke-width="3" />
+            </svg>
+
+            <div class="line-labels">
+              <div v-for="bar in chartBars" :key="bar.label" class="line-label-item">
+                <div class="bar-label">{{ bar.label }}</div>
+                <div class="bar-value">{{ formatNumber(bar.value) }}</div>
+              </div>
             </div>
           </div>
-        </div>
-      </v-card>
+        </v-card>
 
-      <!-- Donut summary -->
-      <v-card class="analytics-card">
-        <div class="card-header">
-          <div>
-            <h2>Tỷ lệ mượn/trả</h2>
-            <p>So sánh lượt mượn, lượt trả và sách đang mượn</p>
-          </div>
-        </div>
-
-        <div class="donut-layout">
-          <div class="donut-chart" :style="donutStyle">
-            <div class="donut-inner">
-              <strong>{{ returnedRate }}%</strong>
-              <span>Đã trả</span>
+        <!-- Donut summary -->
+        <v-card class="analytics-card">
+          <div class="card-header">
+            <div>
+              <h2>Tỷ lệ mượn/trả</h2>
+              <p>So sánh lượt mượn, lượt trả và sách đang mượn</p>
             </div>
           </div>
 
-          <div class="legend-list">
-            <div class="legend-item">
-              <span class="legend-dot dot-borrow"></span>
+          <div class="donut-layout">
+            <div class="donut-chart" :style="donutStyle">
+              <div class="donut-inner">
+                <strong>{{ returnedRate }}%</strong>
+                <span>Đã trả</span>
+              </div>
+            </div>
+
+            <div class="legend-list">
+              <div class="legend-item">
+                <span class="legend-dot dot-borrow"></span>
+                <div>
+                  <b>{{ formatNumber(dashboard.totalBorrowed) }}</b>
+                  <p>Tổng lượt mượn</p>
+                </div>
+              </div>
+
+              <div class="legend-item">
+                <span class="legend-dot dot-return"></span>
+                <div>
+                  <b>{{ formatNumber(dashboard.totalReturned) }}</b>
+                  <p>Tổng lượt trả</p>
+                </div>
+              </div>
+
+              <div class="legend-item">
+                <span class="legend-dot dot-current"></span>
+                <div>
+                  <b>{{ formatNumber(dashboard.currentlyBorrowing) }}</b>
+                  <p>Đang mượn</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </v-card>
+      </section>
+
+      <!-- Tables -->
+      <section class="table-grid">
+        <v-card class="table-card">
+          <div class="table-card-header">
+            <div>
+              <h2>Top sách được mượn nhiều</h2>
+              <p>Danh sách sách có số lượt mượn cao nhất</p>
+            </div>
+
+            <v-btn color="secondary" variant="text" append-icon="mdi-arrow-right" to="/app/books">
+              Xem sách
+            </v-btn>
+          </div>
+
+          <div class="table-scroll">
+            <v-table>
+              <thead>
+                <tr>
+                  <th>Mã sách</th>
+                  <th>Tên sách</th>
+                  <th class="text-right">Số lượt mượn</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr v-for="book in topBooks" :key="book.bookId">
+                  <td>
+                    <span class="code-text">{{ shortId(book.bookId) }}</span>
+                  </td>
+
+                  <td>
+                    <div class="book-name">{{ book.bookTitle }}</div>
+                  </td>
+
+                  <td class="text-right">
+                    <v-chip color="secondary" variant="tonal" size="small">
+                      {{ formatNumber(book.borrowCount) }}
+                    </v-chip>
+                  </td>
+                </tr>
+
+                <tr v-if="topBooks.length === 0 && !loading">
+                  <td colspan="3" class="text-center pa-8">
+                    <v-icon icon="mdi-book-search-outline" size="44" color="grey" />
+                    <div class="empty-title">Chưa có dữ liệu top sách</div>
+                    <div class="empty-text">
+                      Dữ liệu sẽ xuất hiện sau khi có phát sinh phiếu mượn.
+                    </div>
+                  </td>
+                </tr>
+
+                <tr v-if="loading">
+                  <td colspan="3" class="text-center pa-8">
+                    <v-progress-circular indeterminate color="primary" />
+                    <div class="mt-3 text-grey-darken-1">Đang tải dữ liệu...</div>
+                  </td>
+                </tr>
+              </tbody>
+            </v-table>
+          </div>
+        </v-card>
+
+        <v-card class="table-card">
+          <div class="table-card-header">
+            <div>
+              <h2>Tổng quan báo cáo</h2>
+              <p>Các chỉ số được đồng bộ từ Identity & Report Service</p>
+            </div>
+          </div>
+
+          <div class="report-list">
+            <div class="report-item">
+              <div class="report-icon bg-blue">
+                <v-icon icon="mdi-account-group" />
+              </div>
+
+              <div>
+                <b>{{ formatNumber(dashboard.totalReaders) }}</b>
+                <p>Độc giả đang được quản lý trong hệ thống</p>
+              </div>
+            </div>
+
+            <div class="report-item">
+              <div class="report-icon bg-cyan">
+                <v-icon icon="mdi-book-arrow-right" />
+              </div>
+
               <div>
                 <b>{{ formatNumber(dashboard.totalBorrowed) }}</b>
-                <p>Tổng lượt mượn</p>
+                <p>Tổng lượt mượn đã ghi nhận</p>
               </div>
             </div>
 
-            <div class="legend-item">
-              <span class="legend-dot dot-return"></span>
+            <div class="report-item">
+              <div class="report-icon bg-green">
+                <v-icon icon="mdi-book-check" />
+              </div>
+
               <div>
                 <b>{{ formatNumber(dashboard.totalReturned) }}</b>
-                <p>Tổng lượt trả</p>
+                <p>Tổng lượt trả sách đã hoàn tất</p>
               </div>
             </div>
 
-            <div class="legend-item">
-              <span class="legend-dot dot-current"></span>
+            <div class="report-item">
+              <div class="report-icon bg-red">
+                <v-icon icon="mdi-cash-alert" />
+              </div>
+
               <div>
-                <b>{{ formatNumber(dashboard.currentlyBorrowing) }}</b>
-                <p>Đang mượn</p>
+                <b>{{ formatMoney(dashboard.totalFineAmount) }}</b>
+                <p>Tổng số tiền phạt phát sinh</p>
               </div>
             </div>
           </div>
-        </div>
-      </v-card>
-    </section>
-
-    <!-- Tables -->
-    <section class="table-grid">
-      <v-card class="table-card">
-        <div class="table-card-header">
-          <div>
-            <h2>Top sách được mượn nhiều</h2>
-            <p>Danh sách sách có số lượt mượn cao nhất</p>
-          </div>
-
-          <v-btn
-            color="secondary"
-            variant="text"
-            append-icon="mdi-arrow-right"
-            to="/app/books"
-          >
-            Xem sách
-          </v-btn>
-        </div>
-
-        <div class="table-scroll">
-          <v-table>
-            <thead>
-              <tr>
-                <th>Mã sách</th>
-                <th>Tên sách</th>
-                <th class="text-right">Số lượt mượn</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              <tr
-                v-for="book in topBooks"
-                :key="book.bookId"
-              >
-                <td>
-                  <span class="code-text">{{ shortId(book.bookId) }}</span>
-                </td>
-
-                <td>
-                  <div class="book-name">{{ book.bookTitle }}</div>
-                </td>
-
-                <td class="text-right">
-                  <v-chip color="secondary" variant="tonal" size="small">
-                    {{ formatNumber(book.borrowCount) }}
-                  </v-chip>
-                </td>
-              </tr>
-
-              <tr v-if="topBooks.length === 0 && !loading">
-                <td colspan="3" class="text-center pa-8">
-                  <v-icon icon="mdi-book-search-outline" size="44" color="grey" />
-                  <div class="empty-title">Chưa có dữ liệu top sách</div>
-                  <div class="empty-text">
-                    Dữ liệu sẽ xuất hiện sau khi có phát sinh phiếu mượn.
-                  </div>
-                </td>
-              </tr>
-
-              <tr v-if="loading">
-                <td colspan="3" class="text-center pa-8">
-                  <v-progress-circular indeterminate color="primary" />
-                  <div class="mt-3 text-grey-darken-1">Đang tải dữ liệu...</div>
-                </td>
-              </tr>
-            </tbody>
-          </v-table>
-        </div>
-      </v-card>
-
-      <v-card class="table-card">
-        <div class="table-card-header">
-          <div>
-            <h2>Tổng quan báo cáo</h2>
-            <p>Các chỉ số được đồng bộ từ Identity & Report Service</p>
-          </div>
-        </div>
-
-        <div class="report-list">
-          <div class="report-item">
-            <div class="report-icon bg-blue">
-              <v-icon icon="mdi-account-group" />
-            </div>
-
-            <div>
-              <b>{{ formatNumber(dashboard.totalReaders) }}</b>
-              <p>Độc giả đang được quản lý trong hệ thống</p>
-            </div>
-          </div>
-
-          <div class="report-item">
-            <div class="report-icon bg-cyan">
-              <v-icon icon="mdi-book-arrow-right" />
-            </div>
-
-            <div>
-              <b>{{ formatNumber(dashboard.totalBorrowed) }}</b>
-              <p>Tổng lượt mượn đã ghi nhận</p>
-            </div>
-          </div>
-
-          <div class="report-item">
-            <div class="report-icon bg-green">
-              <v-icon icon="mdi-book-check" />
-            </div>
-
-            <div>
-              <b>{{ formatNumber(dashboard.totalReturned) }}</b>
-              <p>Tổng lượt trả sách đã hoàn tất</p>
-            </div>
-          </div>
-
-          <div class="report-item">
-            <div class="report-icon bg-red">
-              <v-icon icon="mdi-cash-alert" />
-            </div>
-
-            <div>
-              <b>{{ formatMoney(dashboard.totalFineAmount) }}</b>
-              <p>Tổng số tiền phạt phát sinh</p>
-            </div>
-          </div>
-        </div>
-      </v-card>
-    </section>
+        </v-card>
+      </section>
     </template>
 
     <!-- ════════ LIBRARIAN: vận hành hàng ngày ════════ -->
@@ -365,7 +334,8 @@
                   {{ item.activityType === 'return' ? 'đã trả' : 'đã mượn' }}
                   cuốn "{{ item.bookTitle }}"
                 </p>
-                <span class="activity-time">{{ formatDateTime(item.activityType === 'return' ? item.returnDate : item.borrowDate) }}</span>
+                <span class="activity-time">{{ formatDateTime(item.activityType === 'return' ? item.returnDate :
+                  item.borrowDate) }}</span>
               </div>
             </div>
 
@@ -659,19 +629,6 @@ onMounted(loadDashboard)
   justify-content: space-between;
   gap: 18px;
   transition: all 0.25s ease;
-}
-
-.stat-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.1) !important;
-}
-
-.stat-icon {
-  width: 54px;
-  height: 54px;
-  display: grid;
-  place-items: center;
-  border-radius: 18px;
 }
 
 .icon-blue {

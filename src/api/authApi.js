@@ -22,7 +22,6 @@ export const authApi = {
     return api.put(identityUrl("/api/identity/auth/change-password"), data);
   },
 
-  // ⚠️ Giả định endpoint - cần xác nhận với backend trước khi dùng thật.
   updateProfile(data) {
     return api.put(identityUrl("/api/identity/auth/me"), data);
   },

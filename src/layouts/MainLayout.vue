@@ -393,16 +393,12 @@ function logout() {
 
 .drawer-menu :deep(.v-list-item:hover) {
   background: var(--dl-surface-container-low);
-  color: var(--dl-primary-dark);
+  color: var(--dl-text-primary);
 }
 
-.drawer-menu :deep(.v-list-item--active) {
-  background: var(--dl-primary-dark) !important;
-  color: #fff !important;
-}
-
-.drawer-menu :deep(.v-list-item--active .v-icon) {
-  color: #fff !important;
+.drawer-menu :deep(.v-list-item:hover) {
+  background: var(--dl-surface-container-low);
+  color: var(--dl-text-primary) !important;
 }
 
 .logout-item :deep(.v-list-item-title),
@@ -440,7 +436,7 @@ function logout() {
   border: none;
   outline: none;
   background: transparent;
-  color: var(--dl-text-primary);
+  color: var(--dl-text-muted);
   font-size: 14px;
 }
 

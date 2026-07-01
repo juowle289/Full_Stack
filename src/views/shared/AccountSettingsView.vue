@@ -3,15 +3,8 @@
     <div class="page-title">Cài đặt</div>
     <div class="page-subtitle">Quản lý thông tin tài khoản, bảo mật và tùy chọn cá nhân</div>
 
-    <v-alert
-      v-if="message"
-      :type="success ? 'success' : 'error'"
-      variant="tonal"
-      class="mb-4 mt-4"
-      rounded="lg"
-      closable
-      @click:close="message = ''"
-    >
+    <v-alert v-if="message" :type="success ? 'success' : 'error'" variant="tonal" class="mb-4 mt-4" rounded="lg"
+      closable @click:close="message = ''">
       {{ message }}
     </v-alert>
 
@@ -23,14 +16,8 @@
           <p>Họ tên, email và thông tin liên hệ hiển thị trên hệ thống</p>
         </div>
 
-        <v-btn
-          v-if="!editingInfo"
-          variant="tonal"
-          color="primary"
-          size="small"
-          prepend-icon="mdi-pencil-outline"
-          @click="startEditInfo"
-        >
+        <v-btn v-if="!editingInfo" variant="tonal" color="primary" size="small" prepend-icon="mdi-pencil-outline"
+          @click="startEditInfo">
           Chỉnh sửa
         </v-btn>
       </div>
@@ -47,9 +34,6 @@
         <v-btn color="primary" :loading="savingInfo" @click="saveInfo">Lưu thay đổi</v-btn>
       </div>
 
-      <v-alert type="info" variant="tonal" density="compact" rounded="lg" class="mt-4" icon="mdi-information-outline">
-        Endpoint cập nhật hồ sơ hiện là giả định (<code>/api/identity/auth/me</code>) — cần xác nhận lại với backend.
-      </v-alert>
     </v-card>
 
     <!-- Đổi mật khẩu -->
@@ -64,12 +48,8 @@
       <div class="info-grid">
         <v-text-field v-model="passwordForm.currentPassword" label="Mật khẩu hiện tại" type="password" />
         <v-text-field v-model="passwordForm.newPassword" label="Mật khẩu mới" type="password" />
-        <v-text-field
-          v-model="passwordForm.confirmPassword"
-          label="Xác nhận mật khẩu mới"
-          type="password"
-          :error-messages="confirmError"
-        />
+        <v-text-field v-model="passwordForm.confirmPassword" label="Xác nhận mật khẩu mới" type="password"
+          :error-messages="confirmError" />
       </div>
 
       <div class="d-flex justify-end">
@@ -101,14 +81,8 @@
           <div class="toggle-label">Ngôn ngữ hiển thị</div>
           <div class="toggle-caption">Hiện tại hệ thống chỉ hỗ trợ đầy đủ Tiếng Việt</div>
         </div>
-        <v-select
-          v-model="language"
-          :items="['Tiếng Việt', 'English']"
-          density="compact"
-          hide-details
-          style="max-width: 160px;"
-          @update:model-value="saveLanguage"
-        />
+        <v-select v-model="language" :items="['Tiếng Việt', 'English']" density="compact" hide-details
+          style="max-width: 160px;" @update:model-value="saveLanguage" />
       </div>
     </v-card>
 
@@ -202,7 +176,8 @@
           <strong>"XÓA"</strong> để xác nhận.
         </v-card-text>
         <v-card-text class="pt-0">
-          <v-text-field v-model="deleteConfirmText" placeholder="Nhập XÓA để xác nhận" density="comfortable" hide-details />
+          <v-text-field v-model="deleteConfirmText" placeholder="Nhập XÓA để xác nhận" density="comfortable"
+            hide-details />
         </v-card-text>
         <v-card-actions>
           <v-spacer />
