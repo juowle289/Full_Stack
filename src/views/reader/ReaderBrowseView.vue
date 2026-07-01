@@ -104,7 +104,11 @@
           <p class="detail-meta">
             <v-icon icon="mdi-domain" size="15" /> {{ detailBook.publisher || 'Chưa rõ NXB' }}
             <span class="dot">•</span>
-            {{ detailBook.publishingYear || '—' }}
+            {{ detailBook.publishedYear || '—' }}
+          </p>
+
+          <p class="detail-description">
+            {{ detailBook.description || 'Chưa có mô tả cho sách này.' }}
           </p>
 
           <p class="detail-availability" :class="isAvailable(detailBook) ? 'text-success' : 'text-error'">
@@ -611,6 +615,13 @@ onMounted(loadBooks)
   font-size: 12.5px;
   color: var(--dl-text-muted);
   margin-bottom: 8px;
+}
+
+.detail-description {
+  font-size: 13.5px;
+  color: var(--dl-text-primary);
+  line-height: 1.7;
+  margin-bottom: 14px;
 }
 
 .dot {

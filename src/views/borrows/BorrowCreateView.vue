@@ -3,15 +3,8 @@
     <div class="page-title">Quầy lưu thông</div>
     <div class="page-subtitle">Thực hiện giao dịch mượn và trả sách cho độc giả</div>
 
-    <v-alert
-      v-if="message"
-      :type="success ? 'success' : 'error'"
-      variant="tonal"
-      class="mb-5 mt-4"
-      rounded="lg"
-      closable
-      @click:close="message = ''"
-    >
+    <v-alert v-if="message" :type="success ? 'success' : 'error'" variant="tonal" class="mb-5 mt-4" rounded="lg"
+      closable @click:close="message = ''">
       {{ message }}
     </v-alert>
 
@@ -27,23 +20,11 @@
         </div>
 
         <label class="field-label">Bạn đọc</label>
-        <v-autocomplete
-          v-model="selectedReaderId"
-          :items="readers"
-          item-title="fullName"
-          item-value="userId"
-          placeholder="Tìm theo tên, email hoặc mã độc giả..."
-          prepend-inner-icon="mdi-account-search-outline"
-          density="comfortable"
-          clearable
-          no-data-text="Không tìm thấy độc giả"
-        >
+        <v-autocomplete v-model="selectedReaderId" :items="readers" item-title="fullName" item-value="userId"
+          placeholder="Tìm theo tên, email hoặc mã độc giả..." prepend-inner-icon="mdi-account-search-outline"
+          density="comfortable" clearable no-data-text="Không tìm thấy độc giả">
           <template #item="{ props, item }">
-            <v-list-item
-              v-bind="props"
-              :title="item.raw.fullName"
-              :subtitle="item.raw.email"
-            />
+            <v-list-item v-bind="props" :title="item.raw.fullName" :subtitle="item.raw.email" />
           </template>
         </v-autocomplete>
 
@@ -59,11 +40,8 @@
             </div>
 
             <div class="reader-summary-right">
-              <v-chip
-                size="small"
-                :color="selectedReader.cardStatus === 'Active' ? 'success' : 'error'"
-                variant="tonal"
-              >
+              <v-chip size="small" :color="selectedReader.cardStatus === 'Active' ? 'success' : 'error'"
+                variant="tonal">
                 {{ selectedReader.cardStatus === 'Active' ? 'Hợp lệ' : 'Thẻ bị khóa' }}
               </v-chip>
               <div class="reader-quota">
@@ -74,24 +52,12 @@
         </transition>
 
         <label class="field-label mt-5">Thêm sách vào phiếu mượn</label>
-        <v-autocomplete
-          v-model="bookToAdd"
-          :items="borrowableBooks"
-          item-title="title"
-          item-value="id"
-          placeholder="Tìm theo tên sách hoặc ISBN..."
-          prepend-inner-icon="mdi-barcode-scan"
-          density="comfortable"
-          clearable
-          no-data-text="Không tìm thấy sách còn trống"
-          @update:model-value="addBookToCart"
-        >
+        <v-autocomplete v-model="bookToAdd" :items="borrowableBooks" item-title="title" item-value="id"
+          placeholder="Tìm theo tên sách hoặc ISBN..." prepend-inner-icon="mdi-barcode-scan" density="comfortable"
+          clearable no-data-text="Không tìm thấy sách còn trống" @update:model-value="addBookToCart">
           <template #item="{ props, item }">
-            <v-list-item
-              v-bind="props"
-              :title="item.raw.title"
-              :subtitle="`${item.raw.author || ''} · ISBN: ${item.raw.isbn || '-'}`"
-            />
+            <v-list-item v-bind="props" :title="item.raw.title"
+              :subtitle="`${item.raw.author || ''} · ISBN: ${item.raw.isbn || '-'}`" />
           </template>
         </v-autocomplete>
 
@@ -113,16 +79,8 @@
           <strong>{{ formatDate(dueDatePreview) }}</strong>
         </div>
 
-        <v-btn
-          block
-          size="large"
-          color="primary"
-          rounded="lg"
-          class="mt-4"
-          prepend-icon="mdi-check-circle-outline"
-          :disabled="!selectedReaderId || !cart.length"
-          @click="confirmBorrowDialog = true"
-        >
+        <v-btn block size="large" color="primary" rounded="lg" class="mt-4" prepend-icon="mdi-check-circle-outline"
+          :disabled="!selectedReaderId || !cart.length" @click="confirmBorrowDialog = true">
           Xác nhận mượn
         </v-btn>
       </v-card>
@@ -138,28 +96,18 @@
         </div>
 
         <label class="field-label">Phiếu mượn đang hoạt động</label>
-        <v-autocomplete
-          v-model="selectedReturnId"
-          :items="activeBorrows"
-          item-title="bookTitle"
-          item-value="id"
-          placeholder="Tìm theo tên sách hoặc tên độc giả..."
-          prepend-inner-icon="mdi-barcode-scan"
-          density="comfortable"
-          clearable
-          no-data-text="Không có phiếu mượn đang hoạt động"
-        >
+        <v-autocomplete v-model="selectedReturnId" :items="activeBorrows" item-title="bookTitle" item-value="id"
+          placeholder="Tìm theo tên sách hoặc tên độc giả..." prepend-inner-icon="mdi-barcode-scan"
+          density="comfortable" clearable no-data-text="Không có phiếu mượn đang hoạt động">
           <template #item="{ props, item }">
-            <v-list-item
-              v-bind="props"
-              :title="item.raw.bookTitle"
-              :subtitle="`${item.raw.readerName} · Mượn ${formatDate(item.raw.borrowDate)}`"
-            />
+            <v-list-item v-bind="props" :title="item.raw.bookTitle"
+              :subtitle="`${item.raw.readerName} · Mượn ${formatDate(item.raw.borrowDate)}`" />
           </template>
         </v-autocomplete>
 
         <transition name="dl-fade">
-          <div v-if="selectedReturn" class="return-summary" :class="{ 'return-summary-overdue': overdueDays(selectedReturn) > 0 }">
+          <div v-if="selectedReturn" class="return-summary"
+            :class="{ 'return-summary-overdue': overdueDays(selectedReturn) > 0 }">
             <v-icon icon="mdi-book-open-page-variant" size="28" color="var(--dl-primary)" />
 
             <div class="return-summary-info">
@@ -178,20 +126,12 @@
         <template v-if="selectedReturn">
           <label class="field-label mt-5">Đánh giá tình trạng</label>
           <div class="condition-options">
-            <button
-              type="button"
-              class="condition-btn"
-              :class="{ 'condition-btn-active': condition === 'Normal' }"
-              @click="condition = 'Normal'"
-            >
+            <button type="button" class="condition-btn" :class="{ 'condition-btn-active': condition === 'Normal' }"
+              @click="condition = 'Normal'">
               <v-icon icon="mdi-check" size="16" /> Bình thường
             </button>
-            <button
-              type="button"
-              class="condition-btn"
-              :class="{ 'condition-btn-active': condition === 'Damaged' }"
-              @click="condition = 'Damaged'"
-            >
+            <button type="button" class="condition-btn" :class="{ 'condition-btn-active': condition === 'Damaged' }"
+              @click="condition = 'Damaged'">
               <v-icon icon="mdi-alert-outline" size="16" /> Hư hỏng/Mất mát
             </button>
           </div>
@@ -205,16 +145,8 @@
 
         <v-spacer />
 
-        <v-btn
-          block
-          size="large"
-          color="warning"
-          rounded="lg"
-          class="mt-4"
-          prepend-icon="mdi-check-circle-outline"
-          :disabled="!selectedReturnId"
-          @click="confirmReturnDialog = true"
-        >
+        <v-btn block size="large" color="warning" rounded="lg" class="mt-4" prepend-icon="mdi-check-circle-outline"
+          :disabled="!selectedReturnId" @click="confirmReturnDialog = true">
           Xác nhận trả
         </v-btn>
       </v-card>
@@ -274,7 +206,8 @@
         </div>
 
         <template v-else-if="fineQrData">
-          <img :src="fineQrData.qrImageUrl" alt="QR VietQR" width="200" height="200" class="mb-3" style="border-radius: 8px;" />
+          <img :src="fineQrData.qrImageUrl" alt="QR VietQR" width="200" height="200" class="mb-3"
+            style="border-radius: 8px;" />
           <p class="mb-1"><strong>{{ formatMoney(fineQrData.fineAmount) }}</strong></p>
           <p class="text-caption text-medium-emphasis mb-4">
             {{ fineQrData.bookTitle }} · {{ fineQrData.readerName }}<br>
@@ -332,16 +265,21 @@ const LOAN_DAYS = 14
 const MAX_BOOKS_PER_READER = ref(5)
 
 const selectedReader = computed(() =>
-  readers.value.find(r => r.userId === selectedReaderId.value) || null
+  readers.value.find(r => String(r.userId) === String(selectedReaderId.value)) || null
 )
 
 const readerCurrentBorrowCount = computed(() => {
   if (!selectedReaderId.value) return 0
-  return borrows.value.filter(b => b.readerId === selectedReaderId.value && !b.returnDate).length
+  return borrows.value.filter(
+    b => String(b.readerId) === String(selectedReaderId.value) && !b.returnDate
+  ).length
 })
 
 const borrowableBooks = computed(() =>
-  books.value.filter(b => (b.isAvailable || Number(b.availableCopies || 0) > 0) && !cart.value.some(c => c.id === b.id))
+  books.value.filter(
+    b => (b.isAvailable || Number(b.availableCopies || 0) > 0) &&
+      !cart.value.some(c => String(c.id) === String(b.id))
+  )
 )
 
 const dueDatePreview = computed(() => {
@@ -355,7 +293,7 @@ const activeBorrows = computed(() =>
 )
 
 const selectedReturn = computed(() =>
-  activeBorrows.value.find(b => b.id === selectedReturnId.value) || null
+  activeBorrows.value.find(b => String(b.id) === String(selectedReturnId.value)) || null
 )
 
 function overdueDays(record) {
@@ -372,9 +310,9 @@ const estimatedFine = computed(() => {
 function addBookToCart(bookId) {
   if (!bookId) return
 
-  const book = books.value.find(b => b.id === bookId)
+  const book = books.value.find(b => String(b.id) === String(bookId))
 
-  if (book && !cart.value.some(c => c.id === bookId)) {
+  if (book && !cart.value.some(c => String(c.id) === String(bookId))) {
     cart.value.push(book)
   }
 
@@ -402,8 +340,16 @@ async function loadData() {
       borrowApi.getAll()
     ])
 
-    readers.value = readerRes.data || []
-    books.value = bookRes.data || []
+    readers.value = (readerRes.data || []).map(reader => ({
+      ...reader,
+      userId: reader.userId ?? reader.id
+    }))
+
+    books.value = (bookRes.data || []).map(book => ({
+      ...book,
+      id: book.id ?? book.bookId
+    }))
+
     borrows.value = borrowRes.data || []
   } catch (err) {
     success.value = false

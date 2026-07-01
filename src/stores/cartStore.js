@@ -35,7 +35,7 @@ export const useCartStore = defineStore("cart", {
         isbn: book.isbn,
         category: book.category,
         publisher: book.publisher,
-        publishingYear: book.publishingYear,
+        publishedYear: book.publishedYear,
       });
       saveCartItems(this.items);
     },

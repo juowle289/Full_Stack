@@ -57,7 +57,7 @@
                 </th>
                 <th>Tựa sách &amp; Tác giả</th>
                 <th>Thể loại</th>
-                <th v-if="!selectedBook">NXB / Năm</th>
+                <th v-if="!selectedBook">NXB</th>
                 <th v-if="!selectedBook">Còn / Tổng</th>
                 <th>Trạng thái</th>
                 <th v-if="canManageBook" class="text-center">Hành động</th>
@@ -88,7 +88,7 @@
                 </td>
 
                 <td>{{ book.category || '-' }}</td>
-                <td v-if="!selectedBook">{{ book.publisher || '-' }} · {{ book.publishingYear || '-' }}</td>
+                <td v-if="!selectedBook">{{ book.publisher || '-' }}</td>
                 <td v-if="!selectedBook">
                   <span
                     :class="Number(book.availableCopies || 0) > 0 ? 'text-success font-weight-bold' : 'text-error font-weight-bold'">
@@ -172,9 +172,14 @@
               <div class="min-width-0">
                 <div class="detail-title">{{ selectedBook.title }}</div>
                 <div class="detail-author">{{ selectedBook.author }}</div>
-                <div class="detail-meta">{{ selectedBook.publisher || 'Chưa rõ NXB' }}, {{ selectedBook.publishingYear
-                  || '-'
+                <div class="detail-meta">{{ selectedBook.publisher || 'Chưa rõ NXB' }}, {{
+                  getPublishedYear(selectedBook) ||
+                  '-'
                   }}</div>
+
+                <div class="detail-description">
+                  {{ selectedBook.description || 'Chưa có mô tả cho sách này.' }}
+                </div>
 
                 <div class="detail-chips">
                   <v-chip size="small" variant="tonal" color="primary">{{ selectedBook.category || 'Khác' }}</v-chip>
@@ -296,18 +301,17 @@
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model.number="form.publishingYear" label="Năm xuất bản" type="number"
+                  <v-text-field v-model="form.publishedYear" label="Năm xuất bản" type="number"
                     prepend-inner-icon="mdi-calendar" />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model.number="form.totalCopies" label="Tổng số bản" type="number"
+                  <v-text-field v-model="form.totalCopies" label="Tổng số bản" type="number"
                     prepend-inner-icon="mdi-counter" />
                 </v-col>
 
-                <v-col cols="12" md="6" v-if="isEditMode">
-                  <v-text-field v-model.number="form.availableCopies" label="Số bản còn lại" type="number"
-                    prepend-inner-icon="mdi-book-check" />
+                <v-col cols="12">
+                  <v-textarea v-model="form.description" label="Mô tả" prepend-inner-icon="mdi-text" rows="2" />
                 </v-col>
 
                 <v-col cols="12">
@@ -422,14 +426,15 @@ const importDialog = ref(false)
 
 // Cột mẫu sách cho download template. Thứ tự và tên cột khớp với yêu cầu:
 // mã sách, tên sách, tác giả, nhà xuất bản, thẻ loại, năm xuất bản,
-// tổng số bản, số bản còn lại, link ảnh bìa (link address image ảnh trực tuyến).
+// mô tả, tổng số bản, số bản còn lại, link ảnh bìa (link address image ảnh trực tuyến).
 const bookImportColumns = [
   { key: 'isbn', label: 'Mã sách / ISBN', required: true },
   { key: 'title', label: 'Tên sách', required: true },
   { key: 'author', label: 'Tác giả', required: true },
   { key: 'publisher', label: 'Nhà xuất bản', required: false },
-  { key: 'category', label: 'Thẻ loại', required: true },
-  { key: 'publishingYear', label: 'Năm xuất bản', required: false },
+  { key: 'category', label: 'Thể loại', required: true },
+  { key: 'publishedYear', label: 'Năm xuất bản', required: false },
+  { key: 'description', label: 'Mô tả', required: false },
   { key: 'totalCopies', label: 'Tổng số bản', required: true },
   { key: 'availableCopies', label: 'Số bản còn lại', required: true },
   { key: 'coverUrl', label: 'Link ảnh bìa (link address image ảnh trực tuyến)', required: false }
@@ -467,11 +472,12 @@ const form = ref({
   title: '',
   author: '',
   publisher: '',
-  publishedYear: new Date().getFullYear(),
+  publishedYear: null,
   category: '',
+  description: '',
   coverUrl: '',
-  totalCopies: 1,
-  availableCopies: 1
+  totalCopies: null,
+  availableCopies: null
 })
 
 const statusOptions = [
@@ -585,7 +591,10 @@ async function loadBooks() {
 
   try {
     const res = await bookApi.getAll(params)
-    books.value = res.data
+    books.value = (res.data || []).map(book => ({
+      ...book,
+      publishedYear: book.publishedYear ?? book.publishingYear
+    }))
     selectedBookIds.value = []
     success.value = true
   } catch (err) {
@@ -600,8 +609,8 @@ async function loadBooks() {
 function resetForm() {
   form.value = {
     isbn: '', title: '', author: '', publisher: '',
-    publishingYear: new Date().getFullYear(), category: '',
-    coverUrl: '', totalCopies: 1, availableCopies: 1
+    publishedYear: null, category: '', description: '',
+    coverUrl: '', totalCopies: null, availableCopies: null
   }
 }
 
@@ -618,9 +627,10 @@ function openEditDialog(book) {
 
   form.value = {
     isbn: book.isbn, title: book.title, author: book.author,
-    publisher: book.publisher, publishingYear: book.publishingYear,
-    category: book.category, coverUrl: book.coverUrl,
-    totalCopies: book.totalCopies, availableCopies: book.availableCopies
+    publisher: book.publisher,
+    publishedYear: book.publishedYear ?? book.publishingYear ?? null,
+    category: book.category, description: book.description || '', coverUrl: book.coverUrl,
+    totalCopies: book.totalCopies ?? null, availableCopies: book.availableCopies ?? null
   }
 
   dialog.value = true
@@ -650,18 +660,26 @@ function formatDate(value) {
   return new Date(value).toLocaleDateString('vi-VN')
 }
 
+function normalizeOptionalNumber(value) {
+  if (value === '' || value == null) return null
+  const normalized = Number(value)
+  return Number.isNaN(normalized) ? null : normalized
+}
+
 function validateForm() {
   if (!form.value.isbn) return 'Mã sách / ISBN không được để trống'
   if (!form.value.title) return 'Tên sách không được để trống'
   if (!form.value.author) return 'Tác giả không được để trống'
-  if (!form.value.publishingYear || form.value.publishingYear <= 0) return 'Năm xuất bản không hợp lệ'
-  if (!form.value.totalCopies || form.value.totalCopies <= 0) return 'Tổng số bản phải lớn hơn 0'
 
-  if (isEditMode.value) {
-    if (form.value.availableCopies < 0) return 'Số bản còn lại không được âm'
-    if (form.value.availableCopies > form.value.totalCopies) {
-      return 'Số bản còn lại không được lớn hơn tổng số bản'
-    }
+  const publishedYear = normalizeOptionalNumber(form.value.publishedYear)
+  const totalCopies = normalizeOptionalNumber(form.value.totalCopies)
+  const availableCopies = normalizeOptionalNumber(form.value.availableCopies)
+
+  if (publishedYear != null && publishedYear <= 0) return 'Năm xuất bản không hợp lệ'
+  if (totalCopies != null && totalCopies <= 0) return 'Tổng số bản phải lớn hơn 0'
+  if (availableCopies != null && availableCopies < 0) return 'Số bản còn lại không được âm'
+  if (totalCopies != null && availableCopies != null && availableCopies > totalCopies) {
+    return 'Số bản còn lại không được lớn hơn tổng số bản'
   }
 
   return ''
@@ -680,12 +698,25 @@ async function saveBook() {
   message.value = ''
 
   try {
+    const payload = { ...form.value }
+    payload.publishedYear = normalizeOptionalNumber(payload.publishedYear)
+    payload.totalCopies = normalizeOptionalNumber(payload.totalCopies)
+    payload.availableCopies = normalizeOptionalNumber(payload.availableCopies)
+
+    if (payload.publishedYear == null) delete payload.publishedYear
+    if (payload.totalCopies == null) delete payload.totalCopies
+    if (payload.availableCopies == null) delete payload.availableCopies
+
+    if (!isEditMode.value && payload.totalCopies != null && payload.availableCopies == null) {
+      payload.availableCopies = payload.totalCopies
+    }
+
     if (isEditMode.value) {
-      await bookApi.update(selectedBookId.value, { ...form.value })
+      await bookApi.update(selectedBookId.value, payload)
       success.value = true
       message.value = 'Cập nhật sách thành công'
     } else {
-      await bookApi.create({ ...form.value })
+      await bookApi.create(payload)
       success.value = true
       message.value = 'Thêm sách thành công'
     }
@@ -699,6 +730,10 @@ async function saveBook() {
   } finally {
     saving.value = false
   }
+}
+
+function getPublishedYear(book) {
+  return book?.publishedYear ?? book?.publishingYear
 }
 
 async function deleteBook(book) {
@@ -752,7 +787,7 @@ function exportSelectedCsv() {
   const selected = books.value.filter(b => selectedBookIds.value.includes(b.id))
   if (!selected.length) return
 
-  const cols = ['isbn', 'title', 'author', 'publisher', 'category', 'publishingYear', 'totalCopies', 'availableCopies']
+  const cols = ['isbn', 'title', 'author', 'publisher', 'category', 'publishedYear', 'totalCopies', 'availableCopies']
   const header = cols.join(',')
   const body = selected.map(b => cols.map(c => `"${String(b[c] ?? '').replace(/"/g, '""')}"`).join(',')).join('\n')
   const csv = `${header}\n${body}`
@@ -944,6 +979,13 @@ onMounted(loadBooks)
   font-size: 12px;
   color: var(--dl-text-muted);
   margin-top: 4px;
+}
+
+.detail-description {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--dl-text-muted);
+  line-height: 1.6;
 }
 
 .detail-chips {

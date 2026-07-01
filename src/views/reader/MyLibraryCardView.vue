@@ -5,7 +5,8 @@
       <p>Xuất trình thẻ này khi mượn sách hoặc sử dụng dịch vụ tại thư viện.</p>
     </div>
 
-    <v-alert v-if="message" :type="success ? 'success' : 'error'" variant="tonal" rounded="lg" class="mb-5 mx-auto" max-width="560">
+    <v-alert v-if="message" :type="success ? 'success' : 'error'" variant="tonal" rounded="lg" class="mb-5 mx-auto"
+      max-width="560">
       {{ message }}
     </v-alert>
 
@@ -50,11 +51,13 @@
       </div>
 
       <div class="card-actions">
-        <v-btn color="primary" size="large" rounded="lg" prepend-icon="mdi-refresh" :loading="refreshing" @click="refreshQr">
+        <v-btn color="primary" size="large" rounded="lg" prepend-icon="mdi-refresh" :loading="refreshing"
+          @click="refreshQr">
           Làm Mới Mã QR
         </v-btn>
 
-        <v-btn variant="outlined" color="primary" size="large" rounded="lg" prepend-icon="mdi-download-outline" @click="saveCardImage">
+        <v-btn variant="outlined" color="primary" size="large" rounded="lg" prepend-icon="mdi-download-outline"
+          @click="saveCardImage">
           Lưu Ảnh Thẻ
         </v-btn>
       </div>
@@ -68,7 +71,8 @@
         <ul>
           <li>
             <v-icon icon="mdi-check-circle-outline" size="17" />
-            Mã QR trên thẻ tự động làm mới sau mỗi 5 phút để đảm bảo bảo mật. Vui lòng không chụp ảnh màn hình để sử dụng lâu dài.
+            Mã QR trên thẻ tự động làm mới sau mỗi 5 phút để đảm bảo bảo mật. Vui lòng không chụp ảnh màn hình để sử
+            dụng lâu dài.
           </li>
           <li>
             <v-icon icon="mdi-check-circle-outline" size="17" />
@@ -87,7 +91,8 @@
           <span>Thời hạn còn lại</span>
           <strong :class="isExpired ? 'text-error' : 'text-success'">{{ daysLeftText }}</strong>
         </div>
-        <v-progress-linear :model-value="validityProgress" :color="isExpired ? 'error' : 'primary'" height="8" rounded />
+        <v-progress-linear :model-value="validityProgress" :color="isExpired ? 'error' : 'primary'" height="8"
+          rounded />
       </div>
     </template>
 
@@ -95,7 +100,8 @@
       <v-icon icon="mdi-card-account-details-outline" size="48" color="var(--dl-text-muted)" />
       <h3>Không tìm thấy thông tin thẻ thư viện</h3>
       <p>Vui lòng tải lại hoặc liên hệ thủ thư để kiểm tra tài khoản.</p>
-      <v-btn color="primary" variant="tonal" rounded="lg" prepend-icon="mdi-refresh" :loading="loading" @click="loadMyCard">
+      <v-btn color="primary" variant="tonal" rounded="lg" prepend-icon="mdi-refresh" :loading="loading"
+        @click="loadMyCard">
         Tải lại
       </v-btn>
     </v-card>
@@ -224,24 +230,29 @@ onMounted(loadMyCard)
 
 /* Thẻ thư viện */
 .library-card {
-  position: relative;
-  border-radius: var(--dl-radius-lg);
-  padding: 28px 30px;
-  background: linear-gradient(135deg, var(--dl-primary) 0%, var(--dl-primary-dark) 100%);
-  box-shadow: 0 24px 60px rgba(22, 38, 58, 0.3);
-  text-align: left;
+  min-height: 300px;
+  border-radius: 28px !important;
+  color: white;
   overflow: hidden;
+  position: relative;
+  padding: 28px 30px;
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.28), transparent 28%),
+    radial-gradient(circle at bottom left, rgba(6, 182, 212, 0.35), transparent 32%),
+    linear-gradient(135deg, #1d4ed8 0%, #0f172a 100%) !important;
+  box-shadow: 0 28px 70px rgba(30, 64, 175, 0.28) !important;
+  text-align: left;
 }
 
 .library-card::after {
   content: '';
   position: absolute;
-  right: -50px;
-  bottom: -50px;
-  width: 160px;
-  height: 160px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.06);
+  right: -60px;
+  bottom: -60px;
+  width: 180px;
+  height: 180px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
 }
 
 /* Hiệu ứng ánh sáng quét chéo \ từ trên-phải xuống dưới-trái */
@@ -261,14 +272,12 @@ onMounted(loadMyCard)
   right: -60%;
   width: 55%;
   height: 220%;
-  background: linear-gradient(
-    100deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.28) 45%,
-    rgba(255, 255, 255, 0.55) 50%,
-    rgba(255, 255, 255, 0.28) 55%,
-    rgba(255, 255, 255, 0) 100%
-  );
+  background: linear-gradient(100deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.28) 45%,
+      rgba(255, 255, 255, 0.55) 50%,
+      rgba(255, 255, 255, 0.28) 55%,
+      rgba(255, 255, 255, 0) 100%);
   transform: rotate(20deg);
   animation: card-shine-sweep 4.5s ease-in-out infinite;
 }
@@ -277,7 +286,9 @@ onMounted(loadMyCard)
   0% {
     transform: translate(0, 0) rotate(20deg);
   }
-  45%, 100% {
+
+  45%,
+  100% {
     transform: translate(-170%, 170%) rotate(20deg);
   }
 }
@@ -340,7 +351,7 @@ onMounted(loadMyCard)
   justify-content: space-between;
   gap: 20px;
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 .card-field-label {

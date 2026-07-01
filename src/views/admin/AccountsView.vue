@@ -31,11 +31,6 @@
       {{ message }}
     </v-alert>
 
-    <v-alert type="info" variant="tonal" rounded="lg" class="mb-4" icon="mdi-information-outline">
-      Màn hình này gọi endpoint <code>/api/identity/users</code> theo đúng convention REST đã có
-      (lock/unlock). Nhóm cần xác nhận lại với backend (tuananh05) đường dẫn chính xác nếu khác.
-    </v-alert>
-
     <v-row class="mb-5">
       <v-col cols="12" md="3">
         <v-card class="stat-card pa-5">
