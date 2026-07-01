@@ -416,8 +416,8 @@ function showPolicyMessage() {
 }
 
 .error-banner-success {
-  background: rgba(5, 150, 105, 0.08);
-  border-color: rgba(5, 150, 105, 0.25);
+  background: rgba(31, 157, 107, 0.08);
+  border-color: rgba(31, 157, 107, 0.25);
   color: var(--dl-success);
 }
 
@@ -454,7 +454,7 @@ function showPolicyMessage() {
 
 .input-wrap:focus-within {
   border-color: var(--dl-primary);
-  box-shadow: 0 0 0 3px rgba(6, 78, 59, 0.1);
+  box-shadow: 0 0 0 3px rgba(38, 67, 97, 0.1);
 }
 
 .input-wrap input,
@@ -635,7 +635,7 @@ function showPolicyMessage() {
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: rgba(5, 150, 105, 0.12);
+  background: rgba(31, 157, 107, 0.12);
   color: var(--dl-success);
   display: grid;
   place-items: center;
@@ -674,7 +674,7 @@ function showPolicyMessage() {
 /* Visual panel */
 .auth-visual-section {
   position: relative;
-  background: linear-gradient(160deg, var(--dl-primary-dark) 0%, #01140f 100%);
+  background: linear-gradient(160deg, var(--dl-primary-dark) 0%, #0a1422 100%);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -695,7 +695,7 @@ function showPolicyMessage() {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: rgba(245, 158, 11, 0.18);
+  background: rgba(240, 168, 94, 0.18);
   color: var(--dl-accent-gold);
   display: grid;
   place-items: center;
@@ -752,7 +752,7 @@ function showPolicyMessage() {
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background: rgba(245, 158, 11, 0.15);
+  background: rgba(240, 168, 94, 0.15);
   color: var(--dl-accent-gold);
   display: grid;
   place-items: center;

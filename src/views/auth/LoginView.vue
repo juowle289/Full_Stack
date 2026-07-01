@@ -348,7 +348,7 @@ function showGoogleMessage() {
 
 .input-wrap:focus-within {
   border-color: var(--dl-primary);
-  box-shadow: 0 0 0 3px rgba(6, 78, 59, 0.1);
+  box-shadow: 0 0 0 3px rgba(38, 67, 97, 0.1);
 }
 
 .input-wrap.input-error {
@@ -463,7 +463,7 @@ function showGoogleMessage() {
 /* Visual panel */
 .auth-visual-section {
   position: relative;
-  background: linear-gradient(160deg, var(--dl-primary-dark) 0%, #01140f 100%);
+  background: linear-gradient(160deg, var(--dl-primary-dark) 0%, #0a1422 100%);
   display: flex;
   flex-direction: column;
   align-items: center;

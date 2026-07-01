@@ -339,7 +339,7 @@ async function confirmImport() {
 
 .dropzone-active {
   border-color: var(--dl-primary);
-  background: rgba(6, 78, 59, 0.04);
+  background: rgba(38, 67, 97, 0.04);
 }
 
 .dropzone-text {
@@ -370,7 +370,7 @@ async function confirmImport() {
 }
 
 .summary-chip-ok {
-  background: rgba(5, 150, 105, 0.12);
+  background: rgba(31, 157, 107, 0.12);
   color: var(--dl-success);
 }
 
@@ -416,7 +416,7 @@ async function confirmImport() {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: rgba(5, 150, 105, 0.12);
+  background: rgba(31, 157, 107, 0.12);
   color: var(--dl-success);
   display: grid;
   place-items: center;

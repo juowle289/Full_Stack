@@ -5,32 +5,32 @@ import '@mdi/font/css/materialdesignicons.css'
 const libraryTheme = {
   dark: false,
   colors: {
-    background: '#F8FAF6',
+    background: '#F2F9FF',
     surface: '#FFFFFF',
-    primary: '#064E3B',
-    'primary-darken-1': '#022C22',
-    secondary: '#9B4500',
-    accent: '#F59E0B',
-    success: '#059669',
+    primary: '#264361',
+    'primary-darken-1': '#16263A',
+    secondary: '#3B6EA5',
+    accent: '#F0A85E',
+    success: '#1F9D6B',
     warning: '#D97706',
     error: '#DC2626',
-    info: '#0284C7'
+    info: '#3B6EA5'
   }
 }
 
 const libraryThemeDark = {
   dark: true,
   colors: {
-    background: '#0B1411',
-    surface: '#11201B',
-    primary: '#34D399',
-    'primary-darken-1': '#022C22',
-    secondary: '#F0B66B',
-    accent: '#F59E0B',
+    background: '#0C1622',
+    surface: '#16263A',
+    primary: '#6FA8D8',
+    'primary-darken-1': '#0C1622',
+    secondary: '#8FC1E8',
+    accent: '#F0A85E',
     success: '#34D399',
-    warning: '#F59E0B',
+    warning: '#F0A85E',
     error: '#F87171',
-    info: '#38BDF8'
+    info: '#6FA8D8'
   }
 }
 

@@ -269,7 +269,7 @@ onMounted(loadFines)
   width: 52px;
   height: 52px;
   border-radius: 50%;
-  background: rgba(5, 150, 105, 0.12);
+  background: rgba(31, 157, 107, 0.12);
   color: var(--dl-success);
   display: grid;
   place-items: center;

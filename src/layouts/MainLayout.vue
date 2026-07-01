@@ -1,10 +1,6 @@
 <template>
   <v-app>
-    <v-navigation-drawer
-      v-model="drawer"
-      width="280"
-      class="dl-drawer"
-    >
+    <v-navigation-drawer v-model="drawer" width="280" class="dl-drawer">
       <div class="drawer-brand">
         <div class="drawer-logo">
           <v-icon icon="mdi-bookshelf" size="22" />
@@ -17,14 +13,8 @@
       </div>
 
       <div class="drawer-quick-action">
-        <v-btn
-          v-if="quickAction"
-          block
-          color="primary"
-          rounded="lg"
-          :prepend-icon="quickAction.icon"
-          @click="router.push(quickAction.to)"
-        >
+        <v-btn v-if="quickAction" block color="primary" rounded="lg" :prepend-icon="quickAction.icon"
+          @click="router.push(quickAction.to)">
           {{ quickAction.label }}
         </v-btn>
       </div>
@@ -34,16 +24,9 @@
         <div class="drawer-group-title">{{ group.title }}</div>
 
         <v-list nav density="comfortable" class="drawer-menu">
-          <v-list-item
-            v-for="item in group.items"
-            :key="item.title"
-            :title="item.title"
-            :prepend-icon="item.icon"
-            :to="item.action ? undefined : item.to"
-            rounded="lg"
-            :class="{ 'logout-item': item.action === 'logout' }"
-            @click="item.action === 'logout' ? logout() : null"
-          />
+          <v-list-item v-for="item in group.items" :key="item.title" :title="item.title" :prepend-icon="item.icon"
+            :to="item.action ? undefined : item.to" rounded="lg" :class="{ 'logout-item': item.action === 'logout' }"
+            @click="item.action === 'logout' ? logout() : null" />
         </v-list>
       </div>
     </v-navigation-drawer>
@@ -54,11 +37,8 @@
       <div class="topbar-search d-none d-md-flex">
         <v-icon icon="mdi-magnify" size="20" />
 
-        <input
-          v-model="searchKeyword"
-          placeholder="Tìm kiếm sách, độc giả, phiếu mượn..."
-          @keyup.enter="handleSearch"
-        />
+        <input v-model="searchKeyword" placeholder="Tìm kiếm sách, độc giả, phiếu mượn..."
+          @keyup.enter="handleSearch" />
       </div>
 
       <div class="topbar-title d-md-none">Thư Viện Số</div>
@@ -95,13 +75,8 @@
             </div>
 
             <div v-else class="notif-list">
-              <div
-                v-for="item in notifications"
-                :key="item.id"
-                class="notif-item"
-                :class="{ 'notif-item-unread': !item.isRead }"
-                @click="markOneRead(item)"
-              >
+              <div v-for="item in notifications" :key="item.id" class="notif-item"
+                :class="{ 'notif-item-unread': !item.isRead }" @click="markOneRead(item)">
                 <v-icon :icon="notifIcon(item.type)" size="18" :color="notifColor(item.type)" />
                 <div class="notif-body">
                   <div class="notif-message">{{ item.message }}</div>
@@ -307,6 +282,7 @@ const navGroups = computed(() => {
       {
         title: 'Của tôi',
         items: [
+          { title: 'Giỏ giữ sách', icon: 'mdi-cart-outline', to: '/app/my-cart' },
           { title: 'Thẻ thư viện của tôi', icon: 'mdi-card-account-details-outline', to: '/app/my-card' },
           { title: 'Lịch sử mượn sách', icon: 'mdi-history', to: '/app/my-borrows' },
           { title: 'Công nợ của tôi', icon: 'mdi-cash-multiple', to: '/app/my-fines' }
@@ -347,7 +323,7 @@ function logout() {
 .dl-drawer {
   background: var(--dl-surface) !important;
   border-right: 1px solid var(--dl-surface-variant) !important;
-  box-shadow: 0 10px 40px rgba(2, 44, 34, 0.05) !important;
+  box-shadow: 0 10px 40px rgba(22, 38, 58, 0.05) !important;
 }
 
 .drawer-brand {
@@ -456,7 +432,7 @@ function logout() {
 
 .topbar-search:focus-within {
   border-color: var(--dl-primary);
-  box-shadow: 0 0 0 3px rgba(6, 78, 59, 0.1);
+  box-shadow: 0 0 0 3px rgba(38, 67, 97, 0.1);
 }
 
 .topbar-search input {
@@ -531,7 +507,7 @@ function logout() {
 }
 
 .notif-item-unread {
-  background: rgba(6, 78, 59, 0.03);
+  background: rgba(38, 67, 97, 0.03);
 }
 
 .notif-body {
@@ -587,17 +563,17 @@ function logout() {
 }
 
 .badge-gold {
-  background: rgba(245, 158, 11, 0.15);
+  background: rgba(240, 168, 94, 0.15);
   color: #92660a;
 }
 
 .badge-navy {
-  background: rgba(2, 44, 34, 0.1);
+  background: rgba(22, 38, 58, 0.1);
   color: var(--dl-primary-dark);
 }
 
 .badge-green {
-  background: rgba(5, 150, 105, 0.12);
+  background: rgba(31, 157, 107, 0.12);
   color: var(--dl-success);
 }
 

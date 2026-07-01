@@ -83,8 +83,8 @@
         >
           <div class="book-cover">
             <img
-              v-if="book.coverImageUrl"
-              :src="book.coverImageUrl"
+              v-if="book.coverUrl"
+              :src="book.coverUrl"
               :alt="book.title"
             />
             <div v-else class="book-cover-fallback">
@@ -459,7 +459,7 @@ onMounted(loadNewBooks)
 }
 
 .badge-available {
-  background: rgba(5, 150, 105, 0.92);
+  background: rgba(31, 157, 107, 0.92);
   color: #fff;
 }
 
@@ -473,7 +473,7 @@ onMounted(loadNewBooks)
   font-size: 11px;
   font-weight: 700;
   color: var(--dl-primary);
-  background: rgba(6, 78, 59, 0.08);
+  background: rgba(38, 67, 97, 0.08);
   border-radius: var(--dl-radius-full);
   padding: 2px 8px;
   margin-bottom: 6px;
@@ -533,7 +533,7 @@ onMounted(loadNewBooks)
   display: grid;
   place-items: center;
   border-radius: var(--dl-radius-md);
-  background: rgba(6, 78, 59, 0.08);
+  background: rgba(38, 67, 97, 0.08);
   color: var(--dl-primary);
   margin-bottom: 1rem;
 }

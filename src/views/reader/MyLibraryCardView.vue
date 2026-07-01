@@ -228,7 +228,7 @@ onMounted(loadMyCard)
   border-radius: var(--dl-radius-lg);
   padding: 28px 30px;
   background: linear-gradient(135deg, var(--dl-primary) 0%, var(--dl-primary-dark) 100%);
-  box-shadow: 0 24px 60px rgba(2, 44, 34, 0.3);
+  box-shadow: 0 24px 60px rgba(22, 38, 58, 0.3);
   text-align: left;
   overflow: hidden;
 }
@@ -318,7 +318,7 @@ onMounted(loadMyCard)
 }
 
 .status-active {
-  background: rgba(5, 150, 105, 0.25);
+  background: rgba(31, 157, 107, 0.25);
   color: #d1fae5;
 }
 

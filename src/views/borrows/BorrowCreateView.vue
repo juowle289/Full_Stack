@@ -755,7 +755,7 @@ onMounted(() => {
 .condition-btn-active {
   border-color: var(--dl-primary);
   color: var(--dl-primary);
-  background: rgba(6, 78, 59, 0.06);
+  background: rgba(38, 67, 97, 0.06);
 }
 
 .fine-preview {

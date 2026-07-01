@@ -207,7 +207,7 @@ async function handleSubmit() {
 .form-field input:focus,
 .form-field textarea:focus {
   border-color: var(--dl-primary);
-  box-shadow: 0 0 0 3px rgba(6, 78, 59, 0.12);
+  box-shadow: 0 0 0 3px rgba(38, 67, 97, 0.12);
 }
 
 /* Success */
@@ -220,7 +220,7 @@ async function handleSubmit() {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: rgba(5, 150, 105, 0.12);
+  background: rgba(31, 157, 107, 0.12);
   color: var(--dl-success);
   display: grid;
   place-items: center;

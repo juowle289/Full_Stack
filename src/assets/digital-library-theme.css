@@ -5,30 +5,30 @@
  */
 
 :root {
-  /* Màu chính */
-  --dl-primary: #064e3b;          /* Forest Green - nút chính, brand */
-  --dl-primary-dark: #022c22;     /* Navy/Green đậm - header tối, footer */
-  --dl-secondary: #9b4500;        /* Amber đậm - link nhấn, hover */
-  --dl-accent-gold: #f59e0b;      /* Vàng gold - CTA phụ, badge */
+  /* Màu chính - bảng màu navy/xanh da trời hiện đại */
+  --dl-primary: #264361;          /* Navy xanh than đậm - nút chính, brand */
+  --dl-primary-dark: #16263a;     /* Navy đậm hơn - header tối, footer, hero */
+  --dl-secondary: #3b6ea5;        /* Xanh dương trung tính - link nhấn, hover */
+  --dl-accent-gold: #f0a85e;      /* Cam đất ấm - điểm nhấn CTA, badge (tương phản với navy) */
 
   /* Nền & bề mặt */
-  --dl-background: #f8faf6;
-  --dl-background-paper: #fdfcf7;
+  --dl-background: #f2f9ff;
+  --dl-background-paper: #f8fcff;
   --dl-surface: #ffffff;
-  --dl-surface-paper: #f9f7f2;
-  --dl-surface-container-low: #f2f4f1;
-  --dl-surface-variant: #e1e3e0;
-  --dl-border: #e5e7eb;
-  --dl-outline: #707974;
-  --dl-outline-variant: #bfc9c3;
+  --dl-surface-paper: #f2f9ff;
+  --dl-surface-container-low: #e7f2fb;
+  --dl-surface-variant: #c5e4f8;
+  --dl-border: #d7eaf8;
+  --dl-outline: #5d7892;
+  --dl-outline-variant: #aecbe2;
 
   /* Văn bản */
-  --dl-text-primary: #111827;
-  --dl-text-muted: #4b5563;
-  --dl-on-surface-variant: #404944;
+  --dl-text-primary: #16263a;
+  --dl-text-muted: #4f6478;
+  --dl-on-surface-variant: #34495e;
 
   /* Trạng thái */
-  --dl-success: #059669;
+  --dl-success: #1f9d6b;
   --dl-warning: #d97706;
   --dl-error: #dc2626;
 
@@ -41,8 +41,8 @@
   --dl-radius-md: 0.75rem;
   --dl-radius-lg: 1rem;
   --dl-radius-full: 9999px;
-  --dl-shadow-soft: 0 10px 30px -10px rgba(0, 0, 0, 0.08);
-  --dl-shadow-card: 0 4px 20px rgba(0, 0, 0, 0.05);
+  --dl-shadow-soft: 0 10px 30px -10px rgba(22, 38, 58, 0.12);
+  --dl-shadow-card: 0 4px 20px rgba(22, 38, 58, 0.07);
 }
 
 /* Lớp tiện ích headline dùng chung cho mọi trang Public */
@@ -104,27 +104,27 @@
 /* ============ DARK MODE ============ */
 /* Áp class .theme-dark lên <html> khi bật tối - override toàn bộ design token */
 .theme-dark {
-  --dl-primary: #34d399;
-  --dl-primary-dark: #0b1411;
-  --dl-secondary: #f0b66b;
-  --dl-accent-gold: #f59e0b;
+  --dl-primary: #6fa8d8;
+  --dl-primary-dark: #0c1622;
+  --dl-secondary: #8fc1e8;
+  --dl-accent-gold: #f0a85e;
 
-  --dl-background: #0b1411;
-  --dl-background-paper: #0b1411;
-  --dl-surface: #11201b;
-  --dl-surface-paper: #15251f;
-  --dl-surface-container-low: #182a23;
-  --dl-surface-variant: #243832;
-  --dl-border: #243832;
-  --dl-outline: #4b5d56;
-  --dl-outline-variant: #2f4640;
+  --dl-background: #0c1622;
+  --dl-background-paper: #0c1622;
+  --dl-surface: #16263a;
+  --dl-surface-paper: #1a2c42;
+  --dl-surface-container-low: #1f3349;
+  --dl-surface-variant: #2c4259;
+  --dl-border: #2c4259;
+  --dl-outline: #5d7892;
+  --dl-outline-variant: #3a5570;
 
-  --dl-text-primary: #ecfdf5;
-  --dl-text-muted: #9cb3ac;
-  --dl-on-surface-variant: #c3d4cd;
+  --dl-text-primary: #e9f3fb;
+  --dl-text-muted: #9bb3c8;
+  --dl-on-surface-variant: #c5e4f8;
 
   --dl-success: #34d399;
-  --dl-warning: #f59e0b;
+  --dl-warning: #f0a85e;
   --dl-error: #f87171;
 
   --dl-shadow-soft: 0 10px 30px -10px rgba(0, 0, 0, 0.5);

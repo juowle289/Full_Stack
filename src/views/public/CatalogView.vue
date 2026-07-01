@@ -79,7 +79,7 @@
             <div class="catalog-grid">
               <div v-for="book in pagedBooks" :key="book.id" class="catalog-book-card">
                 <div class="book-cover">
-                  <img v-if="book.coverImageUrl" :src="book.coverImageUrl" :alt="book.title" />
+                  <img v-if="book.coverUrl" :src="book.coverUrl" :alt="book.title" />
                   <div v-else class="book-cover-fallback">
                     <v-icon icon="mdi-book-open-page-variant" size="30" />
                   </div>
@@ -388,7 +388,7 @@ onMounted(loadBooks)
 
 .catalog-book-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 16px 36px rgba(2, 44, 34, 0.12);
+  box-shadow: 0 16px 36px rgba(22, 38, 58, 0.12);
 }
 
 .book-cover {
@@ -422,7 +422,7 @@ onMounted(loadBooks)
 }
 
 .badge-available {
-  background: rgba(5, 150, 105, 0.92);
+  background: rgba(31, 157, 107, 0.92);
   color: #fff;
 }
 
@@ -459,7 +459,7 @@ onMounted(loadBooks)
   font-size: 11px;
   font-weight: 700;
   color: var(--dl-primary);
-  background: rgba(6, 78, 59, 0.08);
+  background: rgba(38, 67, 97, 0.08);
   border-radius: var(--dl-radius-full);
   padding: 3px 9px;
 }
@@ -478,7 +478,7 @@ onMounted(loadBooks)
 }
 
 .reserve-btn:hover {
-  background: rgba(6, 78, 59, 0.08);
+  background: rgba(38, 67, 97, 0.08);
 }
 
 .book-card-skeleton {

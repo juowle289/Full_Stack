@@ -13,22 +13,23 @@
 
     <!-- Category pills -->
     <div class="category-row">
-      <button
-        class="category-pill"
-        :class="{ 'category-pill-active': !activeCategory }"
-        @click="activeCategory = null"
-      >
-        Tất cả
-      </button>
-      <button
-        v-for="cat in categories"
-        :key="cat"
-        class="category-pill"
-        :class="{ 'category-pill-active': activeCategory === cat }"
-        @click="activeCategory = cat"
-      >
-        {{ cat }}
-      </button>
+      <div class="category-pills">
+        <button class="category-pill" :class="{ 'category-pill-active': !activeCategory }"
+          @click="activeCategory = null">
+          Tất cả
+        </button>
+        <button v-for="cat in categories" :key="cat" class="category-pill"
+          :class="{ 'category-pill-active': activeCategory === cat }" @click="activeCategory = cat">
+          {{ cat }}
+        </button>
+      </div>
+
+      <v-btn class="category-cart-btn" variant="tonal" color="primary" density="comfortable" rounded="full"
+        @click="router.push('/app/my-cart')">
+        <v-icon icon="mdi-cart" size="18" />
+        <span>Giỏ giữ sách</span>
+        <span v-if="cartStore.count" class="cart-count-badge">{{ cartStore.count }}</span>
+      </v-btn>
     </div>
 
     <div v-if="loading" class="book-grid">
@@ -45,7 +46,7 @@
         <div class="book-grid">
           <div v-for="book in recommended" :key="book.id" class="book-card" @click="openDetail(book)">
             <div class="book-cover">
-              <img v-if="book.coverImageUrl" :src="book.coverImageUrl" :alt="book.title" />
+              <img v-if="book.coverUrl" :src="book.coverUrl" :alt="book.title" />
               <div v-else class="book-cover-fallback"><v-icon icon="mdi-book-open-page-variant" size="26" /></div>
 
               <span class="book-badge" :class="isAvailable(book) ? 'badge-available' : 'badge-unavailable'">
@@ -72,7 +73,7 @@
         <div v-else class="book-grid">
           <div v-for="book in filteredBooks" :key="book.id" class="book-card" @click="openDetail(book)">
             <div class="book-cover">
-              <img v-if="book.coverImageUrl" :src="book.coverImageUrl" :alt="book.title" />
+              <img v-if="book.coverUrl" :src="book.coverUrl" :alt="book.title" />
               <div v-else class="book-cover-fallback"><v-icon icon="mdi-book-open-page-variant" size="26" /></div>
 
               <span class="book-badge" :class="isAvailable(book) ? 'badge-available' : 'badge-unavailable'">
@@ -90,8 +91,9 @@
     <v-dialog v-model="detailDialog" max-width="480">
       <v-card v-if="detailBook" rounded="lg" class="detail-card">
         <div class="detail-cover">
-          <img v-if="detailBook.coverImageUrl" :src="detailBook.coverImageUrl" :alt="detailBook.title" />
-          <div v-else class="book-cover-fallback detail-cover-fallback"><v-icon icon="mdi-book-open-page-variant" size="36" /></div>
+          <img v-if="detailBook.coverUrl" :src="detailBook.coverUrl" :alt="detailBook.title" />
+          <div v-else class="book-cover-fallback detail-cover-fallback"><v-icon icon="mdi-book-open-page-variant"
+              size="36" /></div>
         </div>
 
         <div class="detail-body">
@@ -110,16 +112,13 @@
             {{ isAvailable(detailBook) ? `Còn ${detailBook.availableCopies} bản` : 'Hiện đã hết sách' }}
           </p>
 
-          <v-btn
-            block
-            color="primary"
-            rounded="pill"
-            size="large"
-            class="mt-3"
-            :disabled="!isAvailable(detailBook)"
-            @click="confirmReserveDialog = true"
-          >
+          <v-btn block color="primary" rounded="pill" size="large" class="mt-3" :disabled="!isAvailable(detailBook)"
+            @click="confirmReserveDialog = true">
             Đặt giữ sách
+          </v-btn>
+          <v-btn block variant="outlined" color="primary" rounded="pill" size="large" class="mt-2"
+            :disabled="!isAvailable(detailBook)" @click="addToCart(detailBook); detailDialog = false">
+            Thêm vào giỏ
           </v-btn>
         </div>
       </v-card>
@@ -145,15 +144,48 @@
     <!-- Thông báo kết quả -->
     <v-dialog v-model="reserveInfoDialog" max-width="380">
       <v-card rounded="lg" class="pa-5 text-center">
-        <v-icon
-          :icon="reserveSuccess ? 'mdi-clock-check-outline' : 'mdi-alert-circle-outline'"
-          size="34"
-          :color="reserveSuccess ? 'var(--dl-success)' : 'var(--dl-error)'"
-          class="mb-2"
-        />
+        <v-icon :icon="reserveSuccess ? 'mdi-clock-check-outline' : 'mdi-alert-circle-outline'" size="34"
+          :color="reserveSuccess ? 'var(--dl-success)' : 'var(--dl-error)'" class="mb-2" />
         <h3 class="mb-2">{{ reserveSuccess ? 'Đã gửi yêu cầu mượn' : 'Không thể gửi yêu cầu' }}</h3>
         <p class="text-medium-emphasis mb-4">{{ reserveMessage }}</p>
         <v-btn block variant="tonal" color="primary" @click="reserveInfoDialog = false">Đã hiểu</v-btn>
+      </v-card>
+    </v-dialog>
+
+    <!-- Cart floating action -->
+    <div v-if="cartStore.count" class="cart-fab">
+      <v-btn color="primary" rounded="full" @click="cartDialog = true">
+        <v-icon icon="mdi-cart" />
+        <span class="cart-count">{{ cartStore.count }}</span>
+      </v-btn>
+    </div>
+
+    <!-- Cart dialog -->
+    <v-dialog v-model="cartDialog" max-width="520">
+      <v-card rounded="lg">
+        <v-card-title>Giỏ giữ sách ({{ cartStore.count }})</v-card-title>
+        <v-card-text>
+          <div v-if="!cartStore.count">Giỏ trống</div>
+          <div v-else>
+            <div v-for="b in cartStore.items" :key="b.id"
+              class="cart-item d-flex align-center justify-space-between pa-2">
+              <div>
+                <div class="font-weight-bold">{{ b.title }}</div>
+                <div class="text-caption">{{ b.author }}</div>
+              </div>
+              <div>
+                <v-btn variant="text" size="small" color="error" @click="removeFromCart(b.id)">Xóa</v-btn>
+              </div>
+            </div>
+          </div>
+        </v-card-text>
+
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="cartDialog = false">Đóng</v-btn>
+          <v-btn color="primary" :loading="cartSubmitting" @click="submitReserveCart">Gửi yêu cầu</v-btn>
+          <v-btn variant="text" color="secondary" @click="router.push('/app/my-cart')">Xem giỏ của tôi</v-btn>
+        </v-card-actions>
       </v-card>
     </v-dialog>
   </div>
@@ -162,9 +194,11 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { bookApi } from '../../api/bookApi'
 import { borrowApi } from '../../api/borrowApi'
+import { useAuthStore } from '../../stores/authStore'
+import { useCartStore } from '../../stores/cartStore'
 
 const route = useRoute()
 
@@ -179,6 +213,18 @@ const confirmReserveDialog = ref(false)
 const reserving = ref(false)
 const reserveSuccess = ref(true)
 const reserveMessage = ref('')
+
+// Cart for reader: allow adding multiple books and sending 1 request per book
+const cartDialog = ref(false)
+const cartSubmitting = ref(false)
+
+// Policy: fixed max books per reader and must-return-all behaviour
+const MAX_BOOKS = 3
+const MUST_RETURN_ALL = true
+
+const router = useRouter()
+const auth = useAuthStore()
+const cartStore = useCartStore()
 
 async function submitReserve() {
   reserving.value = true
@@ -232,6 +278,69 @@ function isAvailable(book) {
 function openDetail(book) {
   detailBook.value = book
   detailDialog.value = true
+}
+
+function addToCart(book) {
+  if (!auth.isLoggedIn) {
+    router.push('/login')
+    return
+  }
+
+  if (!book || cartStore.hasBook(book.id)) return
+
+  if (cartStore.count >= MAX_BOOKS) {
+    reserveSuccess.value = false
+    reserveMessage.value = `Giỏ đã đạt tối đa ${MAX_BOOKS} cuốn`
+    return
+  }
+
+  cartStore.add(book)
+}
+
+function removeFromCart(bookId) {
+  cartStore.remove(bookId)
+}
+
+async function submitReserveCart() {
+  if (!auth.isLoggedIn) {
+    router.push('/login')
+    return
+  }
+
+  cartSubmitting.value = true
+  reserveSuccess.value = true
+  reserveMessage.value = ''
+
+  try {
+    // Check existing borrows of current reader
+    const myRes = await borrowApi.getMyBorrows()
+    const myBorrows = Array.isArray(myRes.data) ? myRes.data : []
+    const activeCount = myBorrows.filter(b => !b.returnDate).length
+
+    if (MUST_RETURN_ALL && activeCount > 0) {
+      throw new Error('Bạn phải trả hết sách đang mượn trước khi gửi yêu cầu mới.')
+    }
+
+    if (activeCount + cartStore.count > MAX_BOOKS) {
+      throw new Error(`Không thể mượn quá ${MAX_BOOKS} cuốn cùng lúc.`)
+    }
+
+    for (const book of cartStore.items) {
+      await borrowApi.requestBorrow({ bookId: book.id, requestedDays: 14 })
+    }
+
+    reserveSuccess.value = true
+    reserveMessage.value = `Đã gửi yêu cầu mượn ${cartStore.count} cuốn. Vui lòng chờ thủ thư phê duyệt.`
+    cartStore.clear()
+    cartDialog.value = false
+  } catch (err) {
+    reserveSuccess.value = false
+    reserveMessage.value = err.response?.data?.message || err.message || 'Gửi yêu cầu mượn thất bại'
+    console.error(err.response || err)
+  } finally {
+    cartSubmitting.value = false
+    reserveInfoDialog.value = true
+  }
 }
 
 async function loadBooks() {
@@ -302,9 +411,18 @@ onMounted(loadBooks)
 
 .category-row {
   display: flex;
-  gap: 8px;
   flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 28px;
+}
+
+.category-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
 }
 
 .category-pill {
@@ -317,6 +435,27 @@ onMounted(loadBooks)
   color: var(--dl-text-primary);
   cursor: pointer;
   transition: all 0.15s ease;
+}
+
+.category-cart-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.cart-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--dl-error);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .category-pill-active {
@@ -385,7 +524,7 @@ onMounted(loadBooks)
 }
 
 .badge-available {
-  background: rgba(5, 150, 105, 0.92);
+  background: rgba(31, 157, 107, 0.92);
   color: #fff;
 }
 
@@ -417,8 +556,13 @@ onMounted(loadBooks)
 }
 
 @keyframes dl-shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .empty-state {
@@ -486,7 +630,7 @@ onMounted(loadBooks)
   font-size: 11px;
   font-weight: 700;
   color: var(--dl-primary);
-  background: rgba(6, 78, 59, 0.08);
+  background: rgba(38, 67, 97, 0.08);
   border-radius: var(--dl-radius-full);
   padding: 3px 9px;
 }

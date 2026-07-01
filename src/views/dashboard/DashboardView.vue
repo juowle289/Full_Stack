@@ -681,7 +681,7 @@ onMounted(loadDashboard)
 
 .icon-cyan {
   color: var(--dl-primary);
-  background: rgba(6, 78, 59, 0.1);
+  background: rgba(38, 67, 97, 0.1);
 }
 
 .icon-green {
@@ -989,7 +989,7 @@ onMounted(loadDashboard)
 
 .bg-cyan {
   color: var(--dl-primary);
-  background: rgba(6, 78, 59, 0.1);
+  background: rgba(38, 67, 97, 0.1);
 }
 
 .bg-green {

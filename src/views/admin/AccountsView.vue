@@ -10,22 +10,11 @@
 
       <v-spacer />
 
-      <v-btn
-        color="primary"
-        variant="tonal"
-        prepend-icon="mdi-refresh"
-        :loading="loading"
-        @click="loadAccounts"
-      >
+      <v-btn color="primary" variant="tonal" prepend-icon="mdi-refresh" :loading="loading" @click="loadAccounts">
         Tải lại
       </v-btn>
 
-      <v-btn
-        variant="outlined"
-        color="primary"
-        prepend-icon="mdi-file-excel-outline"
-        @click="importDialog = true"
-      >
+      <v-btn variant="outlined" color="primary" prepend-icon="mdi-file-excel-outline" @click="importDialog = true">
         Nhập Excel
       </v-btn>
 
@@ -34,33 +23,15 @@
       </v-btn>
     </div>
 
-    <ImportExcelDialog
-      v-model="importDialog"
-      entity-label="tài khoản"
-      :template-columns="accountImportColumns"
-      :create-fn="importAccountRow"
-      @imported="loadAccounts"
-    />
+    <ImportExcelDialog v-model="importDialog" entity-label="tài khoản" :template-columns="accountImportColumns"
+      :create-fn="importAccountRow" @imported="loadAccounts" />
 
-    <v-alert
-      v-if="message"
-      :type="success ? 'success' : 'error'"
-      variant="tonal"
-      class="mb-4"
-      rounded="lg"
-      closable
-      @click:close="message = ''"
-    >
+    <v-alert v-if="message" :type="success ? 'success' : 'error'" variant="tonal" class="mb-4" rounded="lg" closable
+      @click:close="message = ''">
       {{ message }}
     </v-alert>
 
-    <v-alert
-      type="info"
-      variant="tonal"
-      rounded="lg"
-      class="mb-4"
-      icon="mdi-information-outline"
-    >
+    <v-alert type="info" variant="tonal" rounded="lg" class="mb-4" icon="mdi-information-outline">
       Màn hình này gọi endpoint <code>/api/identity/users</code> theo đúng convention REST đã có
       (lock/unlock). Nhóm cần xác nhận lại với backend (tuananh05) đường dẫn chính xác nếu khác.
     </v-alert>
@@ -98,23 +69,13 @@
     <v-card class="pa-4 mb-4">
       <v-row dense>
         <v-col cols="12" md="5">
-          <v-text-field
-            v-model="keyword"
-            label="Tìm tên / email"
-            prepend-inner-icon="mdi-magnify"
-            density="comfortable"
-            clearable
-          />
+          <v-text-field v-model="keyword" label="Tìm tên / email" prepend-inner-icon="mdi-magnify" density="comfortable"
+            clearable />
         </v-col>
 
         <v-col cols="12" md="4">
-          <v-select
-            v-model="roleFilter"
-            :items="['Librarian', 'Reader']"
-            label="Vai trò"
-            density="comfortable"
-            clearable
-          />
+          <v-select v-model="roleFilter" :items="['Librarian', 'Reader']" label="Vai trò" density="comfortable"
+            clearable />
         </v-col>
       </v-row>
     </v-card>
@@ -124,12 +85,8 @@
         <thead>
           <tr>
             <th style="width: 44px;">
-              <v-checkbox-btn
-                :model-value="allAccountsSelected"
-                :indeterminate="isAccountsIndeterminate"
-                color="primary"
-                @update:model-value="toggleSelectAllAccounts"
-              />
+              <v-checkbox-btn :model-value="allAccountsSelected" :indeterminate="isAccountsIndeterminate"
+                color="primary" @update:model-value="toggleSelectAllAccounts" />
             </th>
             <th>Họ tên</th>
             <th>Email</th>
@@ -160,20 +117,16 @@
               <div class="d-flex justify-center ga-1">
                 <v-tooltip text="Đặt lại mật khẩu">
                   <template #activator="{ props }">
-                    <v-btn v-bind="props" icon="mdi-lock-reset" size="small" variant="text" @click="openResetDialog(acc)" />
+                    <v-btn v-bind="props" icon="mdi-lock-reset" size="small" variant="text"
+                      @click="openResetDialog(acc)" />
                   </template>
                 </v-tooltip>
 
                 <v-tooltip :text="acc.isLocked ? 'Mở khóa tài khoản' : 'Khóa tài khoản'">
                   <template #activator="{ props }">
-                    <v-btn
-                      v-bind="props"
-                      :icon="acc.isLocked ? 'mdi-lock-open-variant-outline' : 'mdi-lock-outline'"
-                      size="small"
-                      variant="text"
-                      :color="acc.isLocked ? 'success' : 'error'"
-                      @click="openLockDialog(acc)"
-                    />
+                    <v-btn v-bind="props" :icon="acc.isLocked ? 'mdi-lock-open-variant-outline' : 'mdi-lock-outline'"
+                      size="small" variant="text" :color="acc.isLocked ? 'success' : 'error'"
+                      @click="openLockDialog(acc)" />
                   </template>
                 </v-tooltip>
               </div>
@@ -420,7 +373,17 @@ async function loadAccounts() {
     // hiển thị được danh sách Độc giả.
     try {
       const res = await userApi.getAll()
-      accounts.value = res.data || []
+      const raw = res.data || []
+
+      // Normalize user shape so components can rely on `userId` and `isLocked`
+      accounts.value = raw.map(u => ({
+        userId: u.userId || u.id,
+        fullName: u.fullName || u.name || u.full_name,
+        email: u.email,
+        role: u.role || (u.roles && u.roles[0]) || 'Reader',
+        isLocked: typeof u.isLocked !== 'undefined' ? u.isLocked : (u.locked || false),
+        lastLoginAt: u.lastLoginAt || u.lastLogin || u.lastSeen || null
+      }))
     } catch {
       const readerRes = await readerApi.getAll()
       accounts.value = (readerRes.data || []).map(r => ({
@@ -570,17 +533,17 @@ onMounted(loadAccounts)
 }
 
 .role-pill-navy {
-  background: rgba(2, 44, 34, 0.1);
+  background: rgba(22, 38, 58, 0.1);
   color: var(--dl-primary-dark);
 }
 
 .role-pill-green {
-  background: rgba(5, 150, 105, 0.12);
+  background: rgba(31, 157, 107, 0.12);
   color: var(--dl-success);
 }
 
 .role-pill-gold {
-  background: rgba(245, 158, 11, 0.15);
+  background: rgba(240, 168, 94, 0.15);
   color: #92660a;
 }
 

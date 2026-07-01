@@ -20,7 +20,7 @@ body {
   font-family: var(--dl-font-headline, serif);
   font-size: 26px;
   font-weight: 700;
-  color: var(--dl-primary-dark, #022c22);
+  color: var(--dl-primary-dark, #16263a);
   letter-spacing: -0.01em;
 }
 
@@ -156,7 +156,7 @@ body {
   border-radius: var(--dl-radius-sm, 8px);
   font-size: 13.5px;
   font-weight: 600;
-  color: var(--dl-primary, #064e3b);
+  color: var(--dl-primary, #264361);
   cursor: pointer;
   white-space: nowrap;
 }
@@ -198,9 +198,9 @@ body {
   gap: 14px;
   padding: 12px 20px;
   border-radius: var(--dl-radius-full, 999px);
-  background: var(--dl-primary-dark, #022c22);
+  background: var(--dl-primary-dark, #16263a);
   color: #fff;
-  box-shadow: 0 16px 40px rgba(2, 44, 34, 0.35);
+  box-shadow: 0 16px 40px rgba(22, 38, 58, 0.35);
 }
 
 .bulk-count {
@@ -237,12 +237,12 @@ body {
 }
 
 .bulk-btn-gold {
-  background: rgba(245, 158, 11, 0.2);
-  color: var(--dl-accent-gold, #f59e0b);
+  background: rgba(240, 168, 94, 0.2);
+  color: var(--dl-accent-gold, #f0a85e);
 }
 
 .bulk-btn-gold:hover {
-  background: var(--dl-accent-gold, #f59e0b);
+  background: var(--dl-accent-gold, #f0a85e);
   color: #1a1300;
 }
 

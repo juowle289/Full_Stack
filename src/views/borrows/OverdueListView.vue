@@ -411,7 +411,7 @@ function severityColor(item) {
 }
 
 function getBookCover(item) {
-  return bookMap.value.get(item.bookId)?.coverImageUrl || null
+  return bookMap.value.get(item.bookId)?.coverUrl || null
 }
 
 function sendNotice(item) {

@@ -319,7 +319,7 @@ const timeline = [
 
 .timeline-dot-active {
   background: var(--dl-primary);
-  box-shadow: 0 0 0 4px rgba(6, 78, 59, 0.15);
+  box-shadow: 0 0 0 4px rgba(38, 67, 97, 0.15);
 }
 
 .timeline-line {

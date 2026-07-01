@@ -8,53 +8,25 @@
 
       <v-spacer />
 
-      <v-btn
-        color="primary"
-        variant="tonal"
-        prepend-icon="mdi-refresh"
-        :loading="loading"
-        @click="loadBooks"
-      >
+      <v-btn color="primary" variant="tonal" prepend-icon="mdi-refresh" :loading="loading" @click="loadBooks">
         Tải lại
       </v-btn>
 
-      <v-btn
-        v-if="canManageBook"
-        variant="outlined"
-        color="primary"
-        prepend-icon="mdi-file-excel-outline"
-        @click="importDialog = true"
-      >
+      <v-btn v-if="canManageBook" variant="outlined" color="primary" prepend-icon="mdi-file-excel-outline"
+        @click="importDialog = true">
         Nhập Excel
       </v-btn>
 
-      <v-btn
-        v-if="canManageBook"
-        color="primary"
-        prepend-icon="mdi-plus"
-        @click="openCreateDialog"
-      >
+      <v-btn v-if="canManageBook" color="primary" prepend-icon="mdi-plus" @click="openCreateDialog">
         Thêm sách
       </v-btn>
     </div>
 
-    <ImportExcelDialog
-      v-model="importDialog"
-      entity-label="sách"
-      :template-columns="bookImportColumns"
-      :upload-fn="bookApi.importExcel"
-      @imported="loadBooks"
-    />
+    <ImportExcelDialog v-model="importDialog" entity-label="sách" :template-columns="bookImportColumns"
+      :upload-fn="bookApi.importExcel" @imported="loadBooks" />
 
-    <v-alert
-      v-if="message"
-      :type="success ? 'success' : 'error'"
-      variant="tonal"
-      class="mb-4"
-      rounded="lg"
-      closable
-      @click:close="message = ''"
-    >
+    <v-alert v-if="message" :type="success ? 'success' : 'error'" variant="tonal" class="mb-4" rounded="lg" closable
+      @click:close="message = ''">
       {{ message }}
     </v-alert>
 
@@ -65,27 +37,11 @@
         <input v-model="keyword" placeholder="Tìm tựa sách, tác giả, ISBN..." @keyup.enter="loadBooks" />
       </div>
 
-      <v-select
-        v-model="category"
-        :items="categoryOptions"
-        label="Tất cả thể loại"
-        density="comfortable"
-        variant="outlined"
-        hide-details
-        clearable
-        class="toolbar-select"
-      />
+      <v-select v-model="category" :items="categoryOptions" label="Tất cả thể loại" density="comfortable"
+        variant="outlined" hide-details clearable class="toolbar-select" />
 
-      <v-select
-        v-model="statusFilter"
-        :items="statusOptions"
-        label="Trạng thái"
-        density="comfortable"
-        variant="outlined"
-        hide-details
-        clearable
-        class="toolbar-select"
-      />
+      <v-select v-model="statusFilter" :items="statusOptions" label="Trạng thái" density="comfortable"
+        variant="outlined" hide-details clearable class="toolbar-select" />
     </div>
 
     <!-- Layout 2 cột: bảng + panel chi tiết -->
@@ -96,11 +52,8 @@
             <thead>
               <tr>
                 <th v-if="canManageBook" style="width: 44px;">
-                  <v-checkbox-btn
-                    v-model="allCurrentPageSelected"
-                    :indeterminate="isCurrentPageIndeterminate"
-                    color="primary"
-                  />
+                  <v-checkbox-btn v-model="allCurrentPageSelected" :indeterminate="isCurrentPageIndeterminate"
+                    color="primary" />
                 </th>
                 <th>Tựa sách &amp; Tác giả</th>
                 <th>Thể loại</th>
@@ -112,11 +65,7 @@
             </thead>
 
             <tbody>
-              <tr
-                v-for="book in paginatedBooks"
-                :key="book.id"
-                :class="{ 'row-active': selectedBook?.id === book.id }"
-              >
+              <tr v-for="book in paginatedBooks" :key="book.id" :class="{ 'row-active': selectedBook?.id === book.id }">
                 <td v-if="canManageBook">
                   <v-checkbox-btn v-model="selectedBookIds" :value="book.id" color="primary" />
                 </td>
@@ -124,15 +73,8 @@
                 <td>
                   <div class="title-cell">
                     <div class="book-cover">
-                      <v-img
-                        v-if="hasCover(book)"
-                        :src="book.coverImageUrl"
-                        width="44"
-                        height="60"
-                        cover
-                        rounded="lg"
-                        @error="markImageError(book.id)"
-                      />
+                      <v-img v-if="hasCover(book)" :src="book.coverUrl" width="44" height="60" cover rounded="lg"
+                        @error="markImageError(book.id)" />
                       <div v-else class="cover-fallback">
                         <v-icon icon="mdi-book-open-page-variant" size="22" />
                       </div>
@@ -148,7 +90,8 @@
                 <td>{{ book.category || '-' }}</td>
                 <td v-if="!selectedBook">{{ book.publisher || '-' }} · {{ book.publishingYear || '-' }}</td>
                 <td v-if="!selectedBook">
-                  <span :class="Number(book.availableCopies || 0) > 0 ? 'text-success font-weight-bold' : 'text-error font-weight-bold'">
+                  <span
+                    :class="Number(book.availableCopies || 0) > 0 ? 'text-success font-weight-bold' : 'text-error font-weight-bold'">
                     {{ book.availableCopies }}
                   </span>
                   / {{ book.totalCopies }}
@@ -164,19 +107,22 @@
                   <div class="d-flex justify-center ga-1">
                     <v-tooltip text="Xem chi tiết">
                       <template #activator="{ props }">
-                        <v-btn v-bind="props" icon="mdi-eye" size="small" color="info" variant="tonal" @click="openDetail(book)" />
+                        <v-btn v-bind="props" icon="mdi-eye" size="small" color="info" variant="tonal"
+                          @click="openDetail(book)" />
                       </template>
                     </v-tooltip>
 
                     <v-tooltip text="Sửa sách">
                       <template #activator="{ props }">
-                        <v-btn v-bind="props" icon="mdi-pencil" size="small" color="warning" variant="tonal" @click="openEditDialog(book)" />
+                        <v-btn v-bind="props" icon="mdi-pencil" size="small" color="warning" variant="tonal"
+                          @click="openEditDialog(book)" />
                       </template>
                     </v-tooltip>
 
                     <v-tooltip text="Xóa sách">
                       <template #activator="{ props }">
-                        <v-btn v-bind="props" icon="mdi-delete" size="small" color="error" variant="tonal" @click="deleteBook(book)" />
+                        <v-btn v-bind="props" icon="mdi-delete" size="small" color="error" variant="tonal"
+                          @click="deleteBook(book)" />
                       </template>
                     </v-tooltip>
                   </div>
@@ -216,7 +162,8 @@
           <div class="detail-panel-body">
             <div class="detail-top">
               <div class="detail-cover-sm">
-                <v-img v-if="hasCover(selectedBook)" :src="selectedBook.coverImageUrl" width="96" height="128" cover rounded="lg" />
+                <v-img v-if="hasCover(selectedBook)" :src="selectedBook.coverUrl" width="96" height="128" cover
+                  rounded="lg" />
                 <div v-else class="cover-fallback" style="width:96px;height:128px;">
                   <v-icon icon="mdi-book-open-page-variant" size="28" />
                 </div>
@@ -225,11 +172,14 @@
               <div class="min-width-0">
                 <div class="detail-title">{{ selectedBook.title }}</div>
                 <div class="detail-author">{{ selectedBook.author }}</div>
-                <div class="detail-meta">{{ selectedBook.publisher || 'Chưa rõ NXB' }}, {{ selectedBook.publishingYear || '-' }}</div>
+                <div class="detail-meta">{{ selectedBook.publisher || 'Chưa rõ NXB' }}, {{ selectedBook.publishingYear
+                  || '-'
+                  }}</div>
 
                 <div class="detail-chips">
                   <v-chip size="small" variant="tonal" color="primary">{{ selectedBook.category || 'Khác' }}</v-chip>
-                  <v-chip size="small" variant="tonal">ISBN: {{ selectedBook.isbn || shortId(selectedBook.id) }}</v-chip>
+                  <v-chip size="small" variant="tonal">ISBN: {{ selectedBook.isbn || shortId(selectedBook.id)
+                    }}</v-chip>
                 </div>
               </div>
             </div>
@@ -258,13 +208,8 @@
             </div>
 
             <div class="copies-tabs">
-              <button
-                v-for="tab in copyTabs"
-                :key="tab.value"
-                class="copies-tab"
-                :class="{ 'copies-tab-active': copyTab === tab.value }"
-                @click="copyTab = tab.value"
-              >
+              <button v-for="tab in copyTabs" :key="tab.value" class="copies-tab"
+                :class="{ 'copies-tab-active': copyTab === tab.value }" @click="copyTab = tab.value">
                 {{ tab.label }}
               </button>
             </div>
@@ -351,19 +296,22 @@
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model.number="form.publishingYear" label="Năm xuất bản" type="number" prepend-inner-icon="mdi-calendar" />
+                  <v-text-field v-model.number="form.publishingYear" label="Năm xuất bản" type="number"
+                    prepend-inner-icon="mdi-calendar" />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model.number="form.totalCopies" label="Tổng số bản" type="number" prepend-inner-icon="mdi-counter" />
+                  <v-text-field v-model.number="form.totalCopies" label="Tổng số bản" type="number"
+                    prepend-inner-icon="mdi-counter" />
                 </v-col>
 
                 <v-col cols="12" md="6" v-if="isEditMode">
-                  <v-text-field v-model.number="form.availableCopies" label="Số bản còn lại" type="number" prepend-inner-icon="mdi-book-check" />
+                  <v-text-field v-model.number="form.availableCopies" label="Số bản còn lại" type="number"
+                    prepend-inner-icon="mdi-book-check" />
                 </v-col>
 
                 <v-col cols="12">
-                  <v-text-field v-model="form.coverImageUrl" label="Link ảnh bìa" prepend-inner-icon="mdi-image" />
+                  <v-text-field v-model="form.coverUrl" label="Link ảnh bìa" prepend-inner-icon="mdi-image" />
                 </v-col>
               </v-row>
             </v-col>
@@ -373,7 +321,7 @@
                 <div class="text-subtitle-2 font-weight-bold mb-3">Xem trước ảnh bìa</div>
 
                 <div class="preview-cover">
-                  <v-img v-if="form.coverImageUrl" :src="form.coverImageUrl" height="260" cover rounded="xl">
+                  <v-img v-if="form.coverUrl" :src="form.coverUrl" height="260" cover rounded="xl">
                     <template #error>
                       <div class="preview-fallback">
                         <v-icon icon="mdi-image-broken" size="42" />
@@ -472,19 +420,19 @@ const auth = useAuthStore()
 
 const importDialog = ref(false)
 
-// Đúng tên cột theo BookImportDto (CatalogService.md) - backend đọc trực tiếp
-// bằng MiniExcel theo tên cột tiếng Việt này.
+// Cột mẫu sách cho download template. Thứ tự và tên cột khớp với yêu cầu:
+// mã sách, tên sách, tác giả, nhà xuất bản, thẻ loại, năm xuất bản,
+// tổng số bản, số bản còn lại, link ảnh bìa (link address image ảnh trực tuyến).
 const bookImportColumns = [
-  { key: 'isbn', label: 'ISBN', required: true },
-  { key: 'title', label: 'Tên Sách', required: true },
-  { key: 'author', label: 'Tác Giả', required: true },
-  { key: 'publisher', label: 'Nhà Xuất Bản', required: false },
-  { key: 'publishingYear', label: 'Năm Xuất Bản', required: false },
-  { key: 'category', label: 'Thể Loại', required: true },
-  { key: 'description', label: 'Mô Tả', required: false },
-  { key: 'coverImageUrl', label: 'Ảnh Bìa', required: false },
-  { key: 'totalCopies', label: 'Tổng Số Bản', required: true },
-  { key: 'shelfLocation', label: 'Vị Trí Kệ', required: false }
+  { key: 'isbn', label: 'Mã sách / ISBN', required: true },
+  { key: 'title', label: 'Tên sách', required: true },
+  { key: 'author', label: 'Tác giả', required: true },
+  { key: 'publisher', label: 'Nhà xuất bản', required: false },
+  { key: 'category', label: 'Thẻ loại', required: true },
+  { key: 'publishingYear', label: 'Năm xuất bản', required: false },
+  { key: 'totalCopies', label: 'Tổng số bản', required: true },
+  { key: 'availableCopies', label: 'Số bản còn lại', required: true },
+  { key: 'coverUrl', label: 'Link ảnh bìa (link address image ảnh trực tuyến)', required: false }
 ]
 
 const books = ref([])
@@ -519,9 +467,9 @@ const form = ref({
   title: '',
   author: '',
   publisher: '',
-  publishingYear: new Date().getFullYear(),
+  publishedYear: new Date().getFullYear(),
   category: '',
-  coverImageUrl: '',
+  coverUrl: '',
   totalCopies: 1,
   availableCopies: 1
 })
@@ -653,7 +601,7 @@ function resetForm() {
   form.value = {
     isbn: '', title: '', author: '', publisher: '',
     publishingYear: new Date().getFullYear(), category: '',
-    coverImageUrl: '', totalCopies: 1, availableCopies: 1
+    coverUrl: '', totalCopies: 1, availableCopies: 1
   }
 }
 
@@ -671,7 +619,7 @@ function openEditDialog(book) {
   form.value = {
     isbn: book.isbn, title: book.title, author: book.author,
     publisher: book.publisher, publishingYear: book.publishingYear,
-    category: book.category, coverImageUrl: book.coverImageUrl,
+    category: book.category, coverUrl: book.coverUrl,
     totalCopies: book.totalCopies, availableCopies: book.availableCopies
   }
 
@@ -824,7 +772,7 @@ function isBookAvailable(book) {
 }
 
 function hasCover(book) {
-  if (!book?.coverImageUrl) return false
+  if (!book?.coverUrl && !book?.coverImageUrl) return false
   return !brokenImageIds.value.includes(book.id)
 }
 
@@ -907,7 +855,7 @@ onMounted(loadBooks)
 }
 
 .row-active {
-  background: rgba(6, 78, 59, 0.05);
+  background: rgba(38, 67, 97, 0.05);
 }
 
 .title-cell {
@@ -1119,7 +1067,7 @@ onMounted(loadBooks)
   border-radius: var(--dl-radius-full);
   background: var(--dl-primary-dark);
   color: #fff;
-  box-shadow: 0 16px 40px rgba(2, 44, 34, 0.35);
+  box-shadow: 0 16px 40px rgba(22, 38, 58, 0.35);
 }
 
 .bulk-count {
@@ -1156,7 +1104,7 @@ onMounted(loadBooks)
 }
 
 .bulk-btn-gold {
-  background: rgba(245, 158, 11, 0.2);
+  background: rgba(240, 168, 94, 0.2);
   color: var(--dl-accent-gold);
 }
 
