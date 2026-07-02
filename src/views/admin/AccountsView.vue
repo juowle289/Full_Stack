@@ -26,8 +26,8 @@
     <ImportExcelDialog v-model="importDialog" entity-label="tài khoản" :template-columns="accountImportColumns"
       :create-fn="importAccountRow" @imported="loadAccounts" />
 
-    <v-alert v-if="message" :type="success ? 'success' : 'error'" variant="tonal" class="mb-4" rounded="lg" closable
-      @click:close="message = ''">
+    <v-alert v-if="message" ref="alertEl" :type="success ? 'success' : 'error'" variant="tonal" class="mb-4" rounded="lg"
+      closable @click:close="message = ''">
       {{ message }}
     </v-alert>
 
@@ -93,7 +93,7 @@
         </thead>
 
         <tbody>
-          <tr v-for="acc in filteredAccounts" :key="acc.userId || acc.id">
+          <tr v-for="acc in paginatedAccounts" :key="acc.userId || acc.id" :class="{ 'row-updating': actingIds.includes(acc.userId) }">
             <td>
               <v-checkbox-btn v-model="selectedAccountIds" :value="acc.userId" color="primary" />
             </td>
@@ -103,8 +103,9 @@
               <span class="role-pill" :class="roleClass(acc.role)">{{ roleLabel(acc.role) }}</span>
             </td>
             <td>
-              <v-chip size="small" :color="acc.isLocked ? 'error' : 'success'" variant="tonal">
-                {{ acc.isLocked ? 'Đã khóa' : 'Hoạt động' }}
+              <v-chip :color="accountStatusColor(acc)" size="small" variant="tonal">
+                <v-icon start :icon="accountStatusIcon(acc)" />
+                {{ accountStatusText(acc) }}
               </v-chip>
             </td>
             <td>{{ acc.lastLoginAt ? formatDate(acc.lastLoginAt) : '-' }}</td>
@@ -121,7 +122,7 @@
                   <template #activator="{ props }">
                     <v-btn v-bind="props" :icon="acc.isLocked ? 'mdi-lock-open-variant-outline' : 'mdi-lock-outline'"
                       size="small" variant="text" :color="acc.isLocked ? 'success' : 'error'"
-                      @click="openLockDialog(acc)" />
+                      :loading="actingIds.includes(acc.userId)" @click="openLockDialog(acc)" />
                   </template>
                 </v-tooltip>
               </div>
@@ -135,6 +136,26 @@
           </tr>
         </tbody>
       </v-table>
+
+      <v-divider />
+
+      <div class="d-flex align-center justify-space-between flex-wrap pa-4 ga-3">
+        <div class="text-body-2 text-grey-darken-1">
+          Hiển thị
+          <b>{{ paginatedAccounts.length }}</b>
+          /
+          <b>{{ filteredAccounts.length }}</b>
+          tài khoản
+        </div>
+
+        <div class="d-flex align-center ga-3">
+          <v-select v-model="itemsPerPage" :items="[5, 10, 20, 50]" label="Số dòng" density="compact" hide-details
+            style="width: 110px;" />
+
+          <v-pagination v-model="page" :length="pageCount" rounded="circle" density="comfortable"
+            total-visible="5" />
+        </div>
+      </div>
     </v-card>
 
     <!-- Bulk action bar nổi -->
@@ -234,7 +255,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { userApi } from '../../api/userApi'
 import { readerApi } from '../../api/readerApi'
 import ImportExcelDialog from '../../components/ImportExcelDialog.vue'
@@ -269,6 +290,11 @@ const success = ref(true)
 const keyword = ref('')
 const roleFilter = ref(null)
 
+const page = ref(1)
+const itemsPerPage = ref(10)
+const actingIds = ref([])
+const alertEl = ref(null)
+
 const createDialog = ref(false)
 const resetDialog = ref(false)
 const lockDialog = ref(false)
@@ -279,16 +305,16 @@ const targetAccount = ref(null)
 const newAccount = ref({ fullName: '', email: '', password: '', role: 'Librarian' })
 
 const allAccountsSelected = computed(() =>
-  filteredAccounts.value.length > 0 &&
-  filteredAccounts.value.every(a => selectedAccountIds.value.includes(a.userId))
+  paginatedAccounts.value.length > 0 &&
+  paginatedAccounts.value.every(a => selectedAccountIds.value.includes(a.userId))
 )
 
 const isAccountsIndeterminate = computed(() =>
-  !allAccountsSelected.value && filteredAccounts.value.some(a => selectedAccountIds.value.includes(a.userId))
+  !allAccountsSelected.value && paginatedAccounts.value.some(a => selectedAccountIds.value.includes(a.userId))
 )
 
 function toggleSelectAllAccounts(value) {
-  const ids = filteredAccounts.value.map(a => a.userId)
+  const ids = paginatedAccounts.value.map(a => a.userId)
 
   if (value) {
     selectedAccountIds.value = [...new Set([...selectedAccountIds.value, ...ids])]
@@ -297,27 +323,78 @@ function toggleSelectAllAccounts(value) {
   }
 }
 
+const pageCount = computed(() => {
+  const total = Math.ceil(filteredAccounts.value.length / itemsPerPage.value)
+  return total || 1
+})
+
+const paginatedAccounts = computed(() => {
+  const start = (page.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return filteredAccounts.value.slice(start, end)
+})
+
+watch([keyword, roleFilter, itemsPerPage], () => {
+  page.value = 1
+})
+
+watch(page, () => {
+  selectedAccountIds.value = []
+})
+
+function scrollToAlert() {
+  requestAnimationFrame(() => {
+    const el = alertEl.value?.$el || alertEl.value
+    el?.scrollIntoView?.({ behavior: 'smooth', block: 'center' })
+  })
+}
+
+function accountStatusText(acc) {
+  return acc.isLocked ? 'Tài khoản bị khóa' : 'Đang hoạt động'
+}
+
+function accountStatusColor(acc) {
+  return acc.isLocked ? 'error' : 'success'
+}
+
+function accountStatusIcon(acc) {
+  return acc.isLocked ? 'mdi-account-lock' : 'mdi-account-check'
+}
+
 async function bulkLockAccounts() {
   bulkActing.value = true
+  const targetIds = [...selectedAccountIds.value]
+  let okCount = 0
+  let failCount = 0
 
-  try {
-    for (const id of selectedAccountIds.value) {
+  for (const id of targetIds) {
+    actingIds.value.push(id)
+    const idx = accounts.value.findIndex(a => a.userId === id)
+    const previousState = idx !== -1 ? accounts.value[idx].isLocked : false
+
+    try {
+      // eslint-disable-next-line no-await-in-loop
       await userApi.lockUser(id)
+      if (idx !== -1) accounts.value[idx] = { ...accounts.value[idx], isLocked: true }
+      okCount++
+    } catch (err) {
+      failCount++
+      console.error(err.response || err)
+    } finally {
+      actingIds.value = actingIds.value.filter(x => x !== id)
     }
-
-    success.value = true
-    message.value = `Đã khóa ${selectedAccountIds.value.length} tài khoản`
-    selectedAccountIds.value = []
-    confirmBulkLock.value = false
-
-    await loadAccounts()
-  } catch (err) {
-    success.value = false
-    message.value = err.response?.data?.message || 'Khóa tài khoản hàng loạt thất bại'
-    console.error(err.response || err)
-  } finally {
-    bulkActing.value = false
   }
+
+  success.value = failCount === 0
+  message.value = failCount === 0
+    ? `Đã khóa ${okCount} tài khoản`
+    : `Khóa thành công ${okCount}/${targetIds.length} tài khoản. ${failCount} tài khoản thất bại (có thể do backend chưa hỗ trợ API này).`
+
+  selectedAccountIds.value = []
+  confirmBulkLock.value = false
+  bulkActing.value = false
+
+  if (failCount > 0) scrollToAlert()
 }
 
 const filteredAccounts = computed(() => {
@@ -453,26 +530,41 @@ function openLockDialog(acc) {
 }
 
 async function submitLockToggle() {
+  const acc = targetAccount.value
+  if (!acc) return
+
+  const previousState = acc.isLocked
   acting.value = true
+  actingIds.value.push(acc.userId)
+  lockDialog.value = false // đóng dialog ngay để người dùng thấy phản hồi tức thì trên bảng
+
+  // Optimistic update: cập nhật ngay trên bảng, không đợi reload toàn bộ danh sách
+  const idx = accounts.value.findIndex(a => a.userId === acc.userId)
+  if (idx !== -1) accounts.value[idx] = { ...accounts.value[idx], isLocked: !previousState }
 
   try {
-    if (targetAccount.value.isLocked) {
-      await userApi.unlockUser(targetAccount.value.userId)
-      message.value = `Đã mở khóa tài khoản ${targetAccount.value.fullName}`
+    if (previousState) {
+      await userApi.unlockUser(acc.userId)
+      message.value = `Đã mở khóa tài khoản ${acc.fullName}`
     } else {
-      await userApi.lockUser(targetAccount.value.userId)
-      message.value = `Đã khóa tài khoản ${targetAccount.value.fullName}`
+      await userApi.lockUser(acc.userId)
+      message.value = `Đã khóa tài khoản ${acc.fullName}`
     }
 
     success.value = true
-    lockDialog.value = false
-    await loadAccounts()
   } catch (err) {
+    // Rollback lại trạng thái cũ vì API thất bại
+    if (idx !== -1) accounts.value[idx] = { ...accounts.value[idx], isLocked: previousState }
+
     success.value = false
-    message.value = err.response?.data?.message || 'Thao tác thất bại'
+    message.value = err.response?.status === 404
+      ? `Backend chưa hỗ trợ API khóa/mở tài khoản (thiếu /api/identity/users/${acc.userId}/${previousState ? 'unlock' : 'lock'}). Cần báo bên Identity bổ sung endpoint này.`
+      : (err.response?.data?.message || 'Thao tác thất bại. Vui lòng thử lại.')
     console.error(err.response || err)
+    scrollToAlert()
   } finally {
     acting.value = false
+    actingIds.value = actingIds.value.filter(id => id !== acc.userId)
   }
 }
 
@@ -545,5 +637,10 @@ onMounted(loadAccounts)
 .dialog-title {
   font-family: var(--dl-font-headline);
   font-weight: 700;
+}
+
+.row-updating {
+  opacity: 0.55;
+  transition: opacity 0.2s ease;
 }
 </style>
