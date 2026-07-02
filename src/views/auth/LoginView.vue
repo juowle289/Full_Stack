@@ -86,7 +86,11 @@
 
             <div class="divider"><span>hoặc</span></div>
 
-            <button type="button" class="google-btn" @click="showGoogleMessage">
+            <!-- Nút Google thật do Google Identity Services tự render vào đây -->
+            <div ref="googleBtnEl" class="google-btn-slot"></div>
+
+            <!-- Fallback: hiện khi chưa cấu hình VITE_GOOGLE_CLIENT_ID hoặc script Google chưa tải xong -->
+            <button v-if="!googleReady" type="button" class="google-btn" @click="showGoogleMessage">
               <svg viewBox="0 0 24 24" class="google-icon">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                 <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
@@ -136,7 +140,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/authStore'
 
@@ -149,6 +153,13 @@ const rememberMe = ref(false)
 
 const router = useRouter()
 const auth = useAuthStore()
+
+// --- Google Identity Services (GIS) ---
+// Cần VITE_GOOGLE_CLIENT_ID trong .env (Google Cloud Console > OAuth Client ID > Web application).
+// Nếu chưa cấu hình, nút Google tự ẩn và fallback về nút cũ (chỉ hiện thông báo).
+const googleBtnEl = ref(null)
+const googleReady = ref(false)
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
 
 function homeForRole(role) {
   if (['Admin', 'Librarian'].includes(role)) return '/app/dashboard'
@@ -194,8 +205,82 @@ function showForgotMessage() {
 }
 
 function showGoogleMessage() {
-  error.value = 'Đăng nhập Google chỉ hiển thị theo giao diện mẫu. Backend hiện đang dùng Email/Mật khẩu bằng JWT.'
+  if (!googleClientId) {
+    error.value = 'Đăng nhập Google chưa được cấu hình VITE_GOOGLE_CLIENT_ID trong .env.'
+    return
+  }
+
+  error.value = 'Không tải được nút đăng nhập Google (mất mạng hoặc script bị chặn). Vui lòng thử lại.'
 }
+
+// Callback Google gọi khi người dùng chọn tài khoản thành công - nhận về credential (ID Token JWT)
+async function handleGoogleCredential(response) {
+  error.value = ''
+  loading.value = true
+
+  try {
+    const user = await auth.loginWithGoogle(response.credential)
+    router.push(homeForRole(user.role))
+  } catch (err) {
+    if (err.response?.status === 404) {
+      error.value = 'Backend chưa hỗ trợ đăng nhập Google (thiếu API /api/identity/auth/google-login).'
+    } else {
+      error.value = err.response?.data?.message || 'Đăng nhập Google thất bại. Vui lòng thử lại hoặc dùng Email/Mật khẩu.'
+    }
+    console.error(err.response || err)
+  } finally {
+    loading.value = false
+  }
+}
+
+function loadGoogleScript() {
+  return new Promise((resolve, reject) => {
+    if (window.google?.accounts?.id) {
+      resolve()
+      return
+    }
+
+    const script = document.createElement('script')
+    script.src = 'https://accounts.google.com/gsi/client'
+    script.async = true
+    script.defer = true
+    script.onload = resolve
+    script.onerror = reject
+    document.head.appendChild(script)
+  })
+}
+
+onMounted(async () => {
+  const remembered = localStorage.getItem('rememberEmail')
+  if (remembered) {
+    email.value = remembered
+    rememberMe.value = true
+  }
+
+  if (!googleClientId) return
+
+  try {
+    await loadGoogleScript()
+
+    window.google.accounts.id.initialize({
+      client_id: googleClientId,
+      callback: handleGoogleCredential
+    })
+
+    window.google.accounts.id.renderButton(googleBtnEl.value, {
+      theme: 'outline',
+      size: 'large',
+      width: 400,
+      text: 'signin_with',
+      shape: 'rectangular'
+    })
+
+    googleReady.value = true
+  } catch (err) {
+    googleReady.value = false
+    console.error('Không tải được Google Identity Services script', err)
+  }
+})
 </script>
 
 <style scoped>
@@ -416,6 +501,15 @@ function showGoogleMessage() {
   font-size: 12.5px;
   font-weight: 700;
   color: var(--dl-text-muted);
+}
+
+.google-btn-slot {
+  display: flex;
+  justify-content: center;
+}
+
+.google-btn-slot :deep(> div) {
+  width: 100% !important;
 }
 
 .google-btn {
