@@ -2,7 +2,7 @@
   <PublicLayout>
     <!-- Sứ mệnh -->
     <section class="mission-section">
-      <div class="public-container mission-inner">
+      <div class="public-container mission-inner" v-reveal="{ variant: 'scale' }">
         <h1 class="dl-headline-lg">Sứ mệnh của chúng tôi</h1>
         <p class="dl-body-lg">
           Xây dựng cầu nối tri thức vững chắc giữa di sản học thuật truyền thống và
@@ -14,7 +14,7 @@
     <!-- Câu chuyện -->
     <section class="public-container section-block">
       <div class="story-grid">
-        <div class="story-card">
+        <div class="story-card" v-reveal="{ variant: 'left' }">
           <div class="story-label">Câu chuyện của chúng tôi</div>
           <h2 class="dl-headline-md">Nền tảng số cho hệ thống đại học</h2>
           <p>
@@ -30,7 +30,7 @@
           </p>
         </div>
 
-        <div class="story-stats">
+        <div class="story-stats" v-reveal="{ stagger: true, variant: 'right' }">
           <div class="stat-card-dark">
             <v-icon icon="mdi-file-document-multiple-outline" size="26" color="var(--dl-accent-gold)" />
             <div class="stat-card-value">45.000+</div>
@@ -53,7 +53,7 @@
         <div class="heading-underline"></div>
       </div>
 
-      <div class="values-grid">
+      <div class="values-grid" v-reveal="{ stagger: true, variant: 'up' }">
         <div v-for="value in coreValues" :key="value.title" class="value-card">
           <div class="value-icon">
             <v-icon :icon="value.icon" size="26" />
@@ -70,7 +70,7 @@
         <h2 class="dl-headline-lg">Hành trình phát triển</h2>
       </div>
 
-      <div class="timeline">
+      <div class="timeline" v-reveal="{ stagger: true, staggerStep: 130, variant: 'left' }">
         <div v-for="(item, idx) in timeline" :key="item.year" class="timeline-item">
           <div class="timeline-marker">
             <div class="timeline-dot" :class="{ 'timeline-dot-active': idx === timeline.length - 1 }"></div>

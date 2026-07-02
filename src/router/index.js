@@ -2,9 +2,14 @@ import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "../stores/authStore";
 
 import HomeView from "../views/public/HomeView.vue";
+import CatalogView from "../views/public/CatalogView.vue";
+import GuideView from "../views/public/GuideView.vue";
+import AboutView from "../views/public/AboutView.vue";
+import ContactView from "../views/public/ContactView.vue";
 import LoginView from "../views/auth/LoginView.vue";
 import RegisterView from "../views/auth/RegisterView.vue";
 import MainLayout from "../layouts/MainLayout.vue";
+
 
 import DashboardView from "../views/dashboard/DashboardView.vue";
 import BookListView from "../views/books/BookListView.vue";
@@ -37,7 +42,24 @@ const routes = [
     component: RegisterView,
   },
   {
+    path: "/catalog",
+    component: CatalogView,
+  },
+  {
+    path: "/guide",
+    component: GuideView,
+  },
+  {
+    path: "/about",
+    component: AboutView,
+  },
+  {
+    path: "/contact",
+    component: ContactView,
+  },
+  {
     path: "/app",
+
     component: MainLayout,
     meta: { requiresAuth: true },
     children: [
@@ -182,6 +204,11 @@ const routes = [
   {
     path: "/my-cart",
     redirect: "/app/my-cart",
+  },
+  // catch-all (tránh điều hướng trang trống khi route public không khớp)
+  {
+    path: "/:pathMatch(.*)*",
+    redirect: "/",
   },
 ];
 

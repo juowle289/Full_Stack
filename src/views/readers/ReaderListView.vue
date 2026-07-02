@@ -335,54 +335,41 @@
         <v-card-text>
           <v-row>
             <v-col cols="12" md="5">
-              <v-card class="reader-card pa-5">
-                <div class="d-flex align-center justify-space-between mb-7">
+              <div class="reader-card">
+                <div class="card-shine"></div>
+
+                <div class="card-top">
                   <div>
-                    <div class="text-caption text-white opacity-80">
-                      LIBRARY CARD
-                    </div>
-                    <div class="text-h6 font-weight-black text-white">
-                      Digital Library
-                    </div>
+                    <div class="card-issuer">THƯ VIỆN SỐ QUỐC GIA</div>
+                    <div class="card-type">Thẻ Độc Giả</div>
                   </div>
 
-                  <v-avatar color="white" size="46">
-                    <v-icon icon="mdi-library" color="primary" />
-                  </v-avatar>
-                </div>
-
-                <div class="text-caption text-white opacity-80">
-                  SỐ THẺ
-                </div>
-
-                <div class="reader-card-number">
-                  {{ selectedCard.cardNumber }}
-                </div>
-
-                <div class="mt-7">
-                  <div class="text-caption text-white opacity-80">
-                    CHỦ THẺ
-                  </div>
-                  <div class="text-white font-weight-bold">
-                    {{ selectedCard.fullName }}
-                  </div>
-                </div>
-
-                <div class="mt-5">
-                  <div class="text-caption text-white opacity-80">
-                    TRẠNG THÁI
-                  </div>
-
-                  <v-chip
-                    class="mt-1"
-                    :color="selectedCard.status === 'Active' ? 'success' : 'error'"
-                    size="small"
-                    variant="flat"
+                  <span
+                    class="status-pill"
+                    :class="selectedCard.status === 'Active' ? 'status-active' : 'status-inactive'"
                   >
+                    <span class="status-dot"></span>
                     {{ getCardStatusText(selectedCard.status) }}
-                  </v-chip>
+                  </span>
                 </div>
-              </v-card>
+
+                <div class="card-fields">
+                  <div class="card-field-label">Họ và Tên</div>
+                  <div class="card-holder-name">{{ selectedCard.fullName }}</div>
+
+                  <div class="card-field-row">
+                    <div>
+                      <div class="card-field-label">Mã Thẻ (ID)</div>
+                      <div class="card-field-value">{{ selectedCard.cardNumber }}</div>
+                    </div>
+
+                    <div>
+                      <div class="card-field-label">Email</div>
+                      <div class="card-field-value card-field-value-sm">{{ selectedCard.email }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </v-col>
 
             <v-col cols="12" md="7">
@@ -932,20 +919,23 @@ onMounted(loadReaders)
   text-overflow: ellipsis;
 }
 
+/* Thẻ độc giả - đồng bộ thiết kế + màu xanh chủ đạo (--dl-primary) với MyLibraryCardView (app/my-card) */
 .reader-card {
-  min-height: 300px;
-  border-radius: 28px !important;
+  min-height: 260px;
+  border-radius: 28px;
   color: white;
   overflow: hidden;
   position: relative;
+  padding: 26px 28px;
   background:
     radial-gradient(circle at top right, rgba(255, 255, 255, 0.28), transparent 28%),
-    radial-gradient(circle at bottom left, rgba(6, 182, 212, 0.35), transparent 32%),
-    linear-gradient(135deg, #1d4ed8 0%, #0f172a 100%) !important;
-  box-shadow: 0 28px 70px rgba(30, 64, 175, 0.28) !important;
+    radial-gradient(circle at bottom left, rgba(111, 168, 216, 0.35), transparent 32%),
+    linear-gradient(135deg, var(--dl-secondary) 0%, var(--dl-primary) 45%, var(--dl-primary-dark) 100%);
+  box-shadow: 0 28px 70px rgba(22, 38, 58, 0.28);
+  text-align: left;
 }
 
-.reader-card::before {
+.reader-card::after {
   content: '';
   position: absolute;
   right: -60px;
@@ -956,17 +946,134 @@ onMounted(loadReaders)
   background: rgba(255, 255, 255, 0.12);
 }
 
-.reader-card > * {
-  position: relative;
+/* Hiệu ứng ánh sáng quét ngang từ phải sang trái */
+.reader-card .card-shine {
+  position: absolute;
+  inset: 0;
   z-index: 2;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: inherit;
 }
 
-.reader-card-number {
-  color: white;
-  font-size: 24px;
-  font-weight: 900;
+.reader-card .card-shine::before {
+  content: '';
+  position: absolute;
+  top: -20%;
+  right: -45%;
+  width: 45%;
+  height: 140%;
+  background: linear-gradient(100deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.28) 45%,
+      rgba(255, 255, 255, 0.55) 50%,
+      rgba(255, 255, 255, 0.28) 55%,
+      rgba(255, 255, 255, 0) 100%);
+  transform: skewX(-18deg);
+  animation: reader-card-shine-sweep 4.5s ease-in-out infinite;
+}
+
+@keyframes reader-card-shine-sweep {
+  0% {
+    transform: translateX(0) skewX(-18deg);
+  }
+
+  45%,
+  100% {
+    transform: translateX(-260%) skewX(-18deg);
+  }
+}
+
+.reader-card .card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  position: relative;
+  z-index: 1;
+}
+
+.reader-card .card-issuer {
+  font-size: 11px;
+  font-weight: 700;
   letter-spacing: 0.08em;
-  margin-top: 8px;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.reader-card .card-type {
+  font-family: var(--dl-font-headline);
+  font-size: 19px;
+  font-weight: 700;
+  color: #fff;
+  margin-top: 2px;
+}
+
+.reader-card .status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: var(--dl-radius-full);
+  white-space: nowrap;
+}
+
+.reader-card .status-active {
+  background: rgba(31, 157, 107, 0.25);
+  color: #d1fae5;
+}
+
+.reader-card .status-inactive {
+  background: rgba(220, 38, 38, 0.25);
+  color: #fecaca;
+}
+
+.reader-card .status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.reader-card .card-fields {
+  position: relative;
+  z-index: 1;
+}
+
+.reader-card .card-field-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 4px;
+}
+
+.reader-card .card-holder-name {
+  font-family: var(--dl-font-headline);
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 18px;
+  word-break: break-word;
+}
+
+.reader-card .card-field-row {
+  display: flex;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+
+.reader-card .card-field-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.02em;
+}
+
+.reader-card .card-field-value-sm {
+  font-size: 13px;
+  font-weight: 600;
+  word-break: break-all;
 }
 
 .info-box {

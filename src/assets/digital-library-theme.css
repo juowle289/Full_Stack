@@ -43,6 +43,9 @@
   --dl-radius-full: 9999px;
   --dl-shadow-soft: 0 10px 30px -10px rgba(22, 38, 58, 0.12);
   --dl-shadow-card: 0 4px 20px rgba(22, 38, 58, 0.07);
+
+  /* Nền nội dung các trang vai trò (Admin/Librarian/Reader) - trắng thuần theo yêu cầu thiết kế */
+  --dl-content-bg: #ffffff;
 }
 
 /* Lớp tiện ích headline dùng chung cho mọi trang Public */
@@ -129,9 +132,58 @@
 
   --dl-shadow-soft: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
   --dl-shadow-card: 0 4px 20px rgba(0, 0, 0, 0.4);
+
+  --dl-content-bg: #0c1622;
 }
 
 .theme-dark body {
   background: var(--dl-background);
   color: var(--dl-text-primary);
+}
+
+/* ============================================================
+   SCROLL REVEAL - hiệu ứng xuất hiện mượt khi cuộn tới (v-reveal)
+   Dùng cubic-bezier "overshoot" nhẹ để có cảm giác cao cấp, đàn hồi
+   tự nhiên thay vì ease-out phẳng thường thấy ở giao diện "phèn".
+   ============================================================ */
+.reveal-init {
+  opacity: 0;
+  will-change: transform, opacity;
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  filter: blur(6px);
+}
+
+.reveal-up {
+  transform: translateY(38px);
+}
+
+.reveal-left {
+  transform: translateX(-46px);
+}
+
+.reveal-right {
+  transform: translateX(46px);
+}
+
+.reveal-scale {
+  transform: scale(0.92) translateY(18px);
+}
+
+.reveal-visible {
+  opacity: 1;
+  transform: translate(0, 0) scale(1);
+  filter: blur(0);
+}
+
+/* Người dùng bật "giảm chuyển động" trong hệ điều hành -> tắt hiệu ứng, hiện luôn nội dung */
+@media (prefers-reduced-motion: reduce) {
+  .reveal-init {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    transition: none !important;
+  }
 }

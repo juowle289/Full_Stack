@@ -1,7 +1,7 @@
 <template>
   <PublicLayout>
     <div class="public-container guide-shell">
-      <div class="guide-header">
+      <div class="guide-header" v-reveal="{ variant: 'scale' }">
         <h1 class="dl-headline-lg">Hướng dẫn &amp; Quy định</h1>
         <p class="dl-body-lg">
           Thông tin chi tiết về cách thức tham gia và nội quy sử dụng tài nguyên tại
@@ -13,7 +13,7 @@
       <section class="guide-section">
         <h2 class="dl-headline-md section-title">Cách đăng ký thẻ thư viện</h2>
 
-        <div class="steps-grid">
+        <div class="steps-grid" v-reveal="{ stagger: true, variant: 'up' }">
           <div v-for="step in steps" :key="step.title" class="step-card">
             <div class="step-icon">
               <v-icon :icon="step.icon" size="24" />
@@ -35,7 +35,7 @@
       <section class="guide-section">
         <h2 class="dl-headline-md section-title">Quy định mượn - trả</h2>
 
-        <div class="rules-table">
+        <div class="rules-table" v-reveal="{ variant: 'left' }">
           <div class="rules-row rules-row-head">
             <div>Hạng mục</div>
             <div>Quy định chi tiết</div>
@@ -68,7 +68,7 @@
       <section class="guide-section">
         <h2 class="dl-headline-md section-title">Câu hỏi thường gặp</h2>
 
-        <v-expansion-panels variant="accordion" class="faq-panels">
+        <v-expansion-panels variant="accordion" class="faq-panels" v-reveal="{ variant: 'right' }">
           <v-expansion-panel v-for="faq in faqs" :key="faq.question" rounded="lg">
             <v-expansion-panel-title>{{ faq.question }}</v-expansion-panel-title>
             <v-expansion-panel-text>{{ faq.answer }}</v-expansion-panel-text>

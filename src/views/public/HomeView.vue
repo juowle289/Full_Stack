@@ -48,7 +48,7 @@
 
     <!-- Stats -->
     <section class="stats-section">
-      <div class="public-container stats-grid">
+      <div class="public-container stats-grid" v-reveal="{ stagger: true, variant: 'scale' }">
         <div v-for="stat in stats" :key="stat.label" class="stat-item">
           <div class="stat-number">{{ stat.value }}</div>
           <div class="stat-label">{{ stat.label }}</div>
@@ -58,7 +58,7 @@
 
     <!-- Sách mới -->
     <section class="public-container section-block">
-      <div class="section-title-row">
+      <div class="section-title-row" v-reveal>
         <div>
           <h2 class="dl-headline-lg">Sách mới &amp; nổi bật</h2>
           <p class="section-subtitle">Những đầu sách vừa được bổ sung vào kho thư viện</p>
@@ -74,7 +74,7 @@
         <div v-for="n in 6" :key="n" class="book-card-skeleton"></div>
       </div>
 
-      <div v-else-if="newBooks.length" class="books-row">
+      <div v-else-if="newBooks.length" class="books-row" v-reveal="{ stagger: true, staggerStep: 70, variant: 'up' }">
         <router-link
           v-for="book in newBooks"
           :key="book.id"
@@ -113,11 +113,11 @@
 
     <!-- Vì sao chọn chúng tôi -->
     <section class="public-container section-block">
-      <div class="section-heading">
+      <div class="section-heading" v-reveal>
         <h2 class="dl-headline-lg">Vì sao chọn Thư Viện Số</h2>
       </div>
 
-      <div class="features-grid">
+      <div class="features-grid" v-reveal="{ stagger: true, variant: 'scale' }">
         <div v-for="feature in features" :key="feature.title" class="feature-card">
           <div class="feature-icon">
             <v-icon :icon="feature.icon" size="26" />
@@ -130,7 +130,7 @@
 
     <!-- Trích dẫn -->
     <section class="quote-section">
-      <div class="public-container quote-inner">
+      <div class="public-container quote-inner" v-reveal="{ variant: 'scale' }">
         <v-icon icon="mdi-format-quote-open" size="40" color="var(--dl-accent-gold)" />
         <p class="quote-text">
           “Thư viện không chỉ là nơi lưu trữ sách, mà là cánh cổng mở ra những khả năng vô tận của tri thức.”

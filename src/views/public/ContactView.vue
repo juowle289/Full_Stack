@@ -1,7 +1,7 @@
 <template>
   <PublicLayout>
     <div class="public-container contact-shell">
-      <div class="contact-header">
+      <div class="contact-header" v-reveal="{ variant: 'scale' }">
         <h1 class="dl-headline-lg">Liên hệ</h1>
         <p class="dl-body-lg">
           Chúng tôi luôn sẵn sàng hỗ trợ. Vui lòng để lại lời nhắn hoặc ghé thăm các
@@ -11,7 +11,7 @@
 
       <div class="contact-layout">
         <!-- Form -->
-        <div class="contact-card form-card">
+        <div class="contact-card form-card" v-reveal="{ variant: 'left' }">
           <template v-if="!submitted">
             <h2 class="dl-headline-md">Gửi lời nhắn cho chúng tôi</h2>
 
@@ -55,7 +55,7 @@
         </div>
 
         <!-- Chi nhánh -->
-        <div class="contact-side">
+        <div class="contact-side" v-reveal="{ variant: 'right', delay: 120 }">
           <div class="contact-card">
             <h2 class="dl-headline-md">Hệ thống chi nhánh</h2>
 

@@ -321,7 +321,7 @@ function logout() {
 
 <style scoped>
 .dl-drawer {
-  background: var(--dl-surface) !important;
+  background: var(--dl-surface-paper) !important;
   border-right: 1px solid var(--dl-surface-variant) !important;
   box-shadow: 0 10px 40px rgba(22, 38, 58, 0.05) !important;
 }
@@ -407,7 +407,7 @@ function logout() {
 }
 
 .dl-topbar {
-  background: rgba(248, 250, 246, 0.92) !important;
+  background: rgba(242, 249, 255, 0.92) !important;
   backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--dl-surface-variant) !important;
   box-shadow: none !important;
@@ -580,12 +580,12 @@ function logout() {
   place-items: center;
   border-radius: 50%;
   color: var(--dl-primary-dark);
-  background: var(--dl-surface-container-low);
+  background: var(--dl-surface-paper);
   border: 2px solid #fff;
 }
 
 .dl-main-bg {
-  background: var(--dl-background-paper);
+  background: var(--dl-content-bg);
 }
 
 .layout-content-shell {

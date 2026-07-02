@@ -1,7 +1,7 @@
 <template>
   <PublicLayout>
     <div class="public-container catalog-shell">
-      <div class="catalog-header">
+      <div class="catalog-header" v-reveal="{ variant: 'up' }">
         <h1 class="dl-headline-lg">Danh mục sách</h1>
         <p class="dl-body-lg">Khám phá toàn bộ kho tài liệu của Thư Viện Số</p>
       </div>
@@ -76,7 +76,7 @@
           </div>
 
           <template v-else>
-            <div class="catalog-grid">
+            <div class="catalog-grid" v-reveal="{ stagger: true, staggerStep: 50, variant: 'up' }">
               <div v-for="book in pagedBooks" :key="book.id" class="catalog-book-card">
                 <div class="book-cover">
                   <img v-if="book.coverUrl" :src="book.coverUrl" :alt="book.title" />

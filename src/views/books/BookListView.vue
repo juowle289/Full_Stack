@@ -56,6 +56,7 @@
                     color="primary" />
                 </th>
                 <th>Tựa sách &amp; Tác giả</th>
+                <th v-if="!selectedBook">Mã sách</th>
                 <th>Thể loại</th>
                 <th v-if="!selectedBook">NXB</th>
                 <th v-if="!selectedBook">Còn / Tổng</th>
@@ -87,14 +88,15 @@
                   </div>
                 </td>
 
+                <td v-if="!selectedBook" class="text-caption">{{ book.isbn || shortId(book.id) }}</td>
                 <td>{{ book.category || '-' }}</td>
                 <td v-if="!selectedBook">{{ book.publisher || '-' }}</td>
                 <td v-if="!selectedBook">
                   <span
                     :class="Number(book.availableCopies || 0) > 0 ? 'text-success font-weight-bold' : 'text-error font-weight-bold'">
-                    {{ book.availableCopies }}
+                    {{ book.availableCopies ?? '-' }}
                   </span>
-                  / {{ book.totalCopies }}
+                  / {{ book.totalCopies ?? '-' }}
                 </td>
 
                 <td>
@@ -130,7 +132,7 @@
               </tr>
 
               <tr v-if="paginatedBooks.length === 0">
-                <td :colspan="8" class="text-center pa-8">
+                <td :colspan="emptyRowColspan" class="text-center pa-8">
                   <v-icon icon="mdi-database-search-outline" size="46" color="grey" />
                   <div class="text-subtitle-1 font-weight-bold mt-2">Không tìm thấy sách phù hợp</div>
                   <div class="text-body-2 text-grey-darken-1">Thử thay đổi từ khóa, thể loại hoặc trạng thái lọc.</div>
@@ -281,15 +283,18 @@
             <v-col cols="12" md="8">
               <v-row>
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="form.isbn" label="Mã sách / ISBN" prepend-inner-icon="mdi-barcode" />
+                  <v-text-field v-model="form.isbn" label="Mã sách / ISBN *" prepend-inner-icon="mdi-barcode"
+                    hint="Bắt buộc" persistent-hint />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="form.title" label="Tên sách" prepend-inner-icon="mdi-book-open-page-variant" />
+                  <v-text-field v-model="form.title" label="Tên sách *" prepend-inner-icon="mdi-book-open-page-variant"
+                    hint="Bắt buộc" persistent-hint />
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="form.author" label="Tác giả" prepend-inner-icon="mdi-account-edit" />
+                  <v-text-field v-model="form.author" label="Tác giả *" prepend-inner-icon="mdi-account-edit"
+                    hint="Bắt buộc" persistent-hint />
                 </v-col>
 
                 <v-col cols="12" md="6">
@@ -306,8 +311,8 @@
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-text-field v-model="form.totalCopies" label="Tổng số bản" type="number"
-                    prepend-inner-icon="mdi-counter" />
+                  <v-text-field v-model="form.totalCopies" label="Tổng số bản" type="number" min="1"
+                    prepend-inner-icon="mdi-counter" hint="Mặc định 1 nếu để trống, phải > 0" persistent-hint />
                 </v-col>
 
                 <v-col cols="12">
@@ -424,20 +429,20 @@ const auth = useAuthStore()
 
 const importDialog = ref(false)
 
-// Cột mẫu sách cho download template. Thứ tự và tên cột khớp với yêu cầu:
-// mã sách, tên sách, tác giả, nhà xuất bản, thẻ loại, năm xuất bản,
-// mô tả, tổng số bản, số bản còn lại, link ảnh bìa (link address image ảnh trực tuyến).
+// Cột mẫu sách cho download template. Tên cột (label) PHẢI khớp chính xác với
+// header mà CatalogService đọc bằng MiniExcel khi import (.xlsx) - xem CatalogService.md.
+// Chỉ 3 trường bắt buộc: Mã sách (ISBN), Tên sách, Tác giả - đồng bộ với form Thêm sách.
 const bookImportColumns = [
-  { key: 'isbn', label: 'Mã sách / ISBN', required: true },
-  { key: 'title', label: 'Tên sách', required: true },
-  { key: 'author', label: 'Tác giả', required: true },
-  { key: 'publisher', label: 'Nhà xuất bản', required: false },
-  { key: 'category', label: 'Thể loại', required: true },
-  { key: 'publishedYear', label: 'Năm xuất bản', required: false },
-  { key: 'description', label: 'Mô tả', required: false },
-  { key: 'totalCopies', label: 'Tổng số bản', required: true },
-  { key: 'availableCopies', label: 'Số bản còn lại', required: true },
-  { key: 'coverUrl', label: 'Link ảnh bìa (link address image ảnh trực tuyến)', required: false }
+  { key: 'isbn', label: 'ISBN', required: true },
+  { key: 'title', label: 'Tên Sách', required: true },
+  { key: 'author', label: 'Tác Giả', required: true },
+  { key: 'publisher', label: 'Nhà Xuất Bản', required: false },
+  { key: 'publishedYear', label: 'Năm Xuất Bản', required: false },
+  { key: 'category', label: 'Thể Loại', required: false },
+  { key: 'description', label: 'Mô Tả', required: false },
+  { key: 'coverUrl', label: 'Ảnh Bìa', required: false },
+  { key: 'totalCopies', label: 'Tổng Số Bản', required: true },
+  { key: 'location', label: 'Vị Trí Kệ', required: false }
 ]
 
 const books = ref([])
@@ -549,6 +554,15 @@ const isCurrentPageIndeterminate = computed(() => {
   return selectedCount > 0 && selectedCount < ids.length
 })
 
+// Tính số cột đang hiển thị thực tế để colspan của hàng trống luôn khớp,
+// tránh lệch bảng khi ẩn/hiện cột theo canManageBook / selectedBook.
+const emptyRowColspan = computed(() => {
+  let count = 3 // "Tựa sách & Tác giả" + "Thể loại" + "Trạng thái" luôn hiển thị
+  if (canManageBook.value) count += 2 // checkbox + hành động
+  if (!selectedBook.value) count += 3 // Mã sách + NXB + Còn/Tổng
+  return count
+})
+
 // Danh sách bản sao minh họa - suy ra từ totalCopies/availableCopies thật,
 // vì backend chưa có entity quản lý từng bản sao riêng lẻ.
 const allCopies = computed(() => {
@@ -610,7 +624,7 @@ function resetForm() {
   form.value = {
     isbn: '', title: '', author: '', publisher: '',
     publishedYear: null, category: '', description: '',
-    coverUrl: '', totalCopies: null, availableCopies: null
+    coverUrl: '', totalCopies: 1, availableCopies: null
   }
 }
 
@@ -704,8 +718,14 @@ async function saveBook() {
     payload.availableCopies = normalizeOptionalNumber(payload.availableCopies)
 
     if (payload.publishedYear == null) delete payload.publishedYear
-    if (payload.totalCopies == null) delete payload.totalCopies
     if (payload.availableCopies == null) delete payload.availableCopies
+
+    // Luôn đảm bảo tạo sách mới với tổng số bản > 0 (mặc định 1 nếu bỏ trống)
+    if (!isEditMode.value) {
+      payload.totalCopies = payload.totalCopies != null && payload.totalCopies > 0 ? payload.totalCopies : 1
+    } else if (payload.totalCopies == null) {
+      delete payload.totalCopies
+    }
 
     if (!isEditMode.value && payload.totalCopies != null && payload.availableCopies == null) {
       payload.availableCopies = payload.totalCopies

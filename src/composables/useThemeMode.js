@@ -12,8 +12,10 @@ export function useThemeMode() {
 
     if (dark) {
       document.documentElement.classList.add('theme-dark')
+      document.body.classList.add('dark-theme')
     } else {
       document.documentElement.classList.remove('theme-dark')
+      document.body.classList.remove('dark-theme')
     }
 
     localStorage.setItem('themeMode', dark ? 'dark' : 'light')
